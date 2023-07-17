@@ -29,3 +29,9 @@ bcdboot C:\windows /s M: /l ru-ru
 ```
 
 Должно будет появиться сообщение, что файлы загрузки созданы (перед ru-ru буква L). 
+
+# Gnome alt+shift
+
+```
+gsettings set org.gnome.desktop.wm.keybindings switch-input-source "['<Alt>Shift_L']"
+```
