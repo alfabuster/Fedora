@@ -1,0 +1,11 @@
+sudo xbps-install -y \
+libX11 \
+libXext \
+libXrender \
+libXfixes \
+libXcomposite \
+libXdamage \
+libXrandr \
+libXi \
+libxcb \
+libxkbcommon-x11
