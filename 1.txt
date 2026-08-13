@@ -19,3 +19,7 @@ ls -la /opt/AmneziaVPN/ 2>/dev/null
 find /opt -iname '*amnezia*' 2>/dev/null
 
 find /usr/local -iname '*amnezia*' 2>/dev/null
+
+find /opt/AmneziaVPN -name 'libqwayland*.so' -o -name 'libqwayland-egl.so'
+
+find /opt/AmneziaVPN/plugins -maxdepth 2 -type f | head -50
