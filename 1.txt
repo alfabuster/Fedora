@@ -137,3 +137,43 @@ ping google.com
 не работает — всё отлично, сам VPN и маршрутизация работают, сломан только DNS.
 
 Если оба не работают — тогда будем смотреть маршруты/iptables.
+
+
+
+
+
+Сейчас проверим handshake
+
+При подключённом VPN выполни:
+
+sudo wg show
+
+Если wg не найден:
+
+sudo xbps-install -y wireguard-tools
+
+и снова:
+
+sudo wg show
+
+Нам особенно интересны строки:
+
+latest handshake: ...
+transfer: ...
+endpoint: ...
+
+Не нужно присылать private key, если он вдруг отображается. Обычно wg show его не показывает.
+
+И ещё одна команда
+
+Выполни:
+
+ip rule
+
+И:
+
+sudo nft list ruleset
+
+Если nft не установлен:
+
+sudo xbps-install -y nftables
