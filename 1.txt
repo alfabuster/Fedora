@@ -13,3 +13,9 @@ libxkbcommon-x11
 sudo xbps-install -y xcb-util-wm
 
 sudo xbps-install -y xcb-util-keysyms
+
+ls -la /opt/AmneziaVPN/ 2>/dev/null
+
+find /opt -iname '*amnezia*' 2>/dev/null
+
+find /usr/local -iname '*amnezia*' 2>/dev/null
