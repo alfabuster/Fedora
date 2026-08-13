@@ -201,3 +201,21 @@ ip -s link show amn0
 При подключённом VPN:
 
 curl --interface amn0 -4 --connect-timeout 5 http://1.1.1.1
+
+
+
+Сейчас исправим DNS
+
+Для начала посмотрим, чем Void сейчас управляет DNS.
+
+Выполни:
+
+ls -l /etc/resolv.conf
+
+и:
+
+cat /etc/resolv.conf
+
+При подключённом VPN.
+
+Пришли оба вывода.
