@@ -30,3 +30,74 @@ QT_QPA_PLATFORM=xcb /opt/AmneziaVPN/bin/AmneziaVPN
 file /opt/AmneziaVPN/bin/AmneziaVPN-service
 /opt/AmneziaVPN/bin/AmneziaVPN-service --help
 cat /opt/AmneziaVPN/AmneziaVPN.service
+
+
+
+1. Останови вручную запущенный сервис
+
+Ты уже сделал Ctrl+C, так что он остановлен.
+
+Создай каталог сервиса:
+
+sudo mkdir -p /etc/sv/amnezia-vpn
+
+Теперь создадим run-скрипт. Тут уже понадобится sudo и nano, но файл всего из нескольких строк:
+
+sudo nano /etc/sv/amnezia-vpn/run
+
+Вставь:
+
+#!/bin/sh
+exec /opt/AmneziaVPN/bin/AmneziaVPN-service
+
+Сохрани:
+
+Ctrl+O → Enter → Ctrl+X
+
+Затем:
+
+sudo chmod +x /etc/sv/amnezia-vpn/run
+2. Запускаем через runit
+
+В Void сервисы включаются созданием symlink в /var/service:
+
+sudo ln -s /etc/sv/amnezia-vpn /var/service/
+
+Проверь:
+
+sudo sv status amnezia-vpn
+
+Нам нужно увидеть примерно:
+
+run: amnezia-vpn: (pid 1234) ...
+3. Проверяем socket
+
+Теперь:
+
+ls -la /var/run/amneziavpn
+
+Если всё правильно, предупреждение:
+
+Failed to create /var/run/amneziavpn
+
+исчезнет, потому что сервис теперь запущен от root.
+
+4. Запускаем GUI
+
+Оставь сервис работать и в твоём foot выполни:
+
+QT_QPA_PLATFORM=xcb /opt/AmneziaVPN/bin/AmneziaVPN
+
+После этого Error 103 должен исчезнуть.
+
+Если sv status покажет down
+
+Не пытайся перезапускать всё подряд. Выполни:
+
+sudo sv status amnezia-vpn
+
+и:
+
+sudo sv tail amnezia-vpn
+
+и пришли вывод.
