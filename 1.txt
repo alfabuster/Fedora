@@ -23,3 +23,10 @@ find /usr/local -iname '*amnezia*' 2>/dev/null
 find /opt/AmneziaVPN -name 'libqwayland*.so' -o -name 'libqwayland-egl.so'
 
 find /opt/AmneziaVPN/plugins -maxdepth 2 -type f | head -50
+
+
+QT_QPA_PLATFORM=xcb /opt/AmneziaVPN/bin/AmneziaVPN
+
+file /opt/AmneziaVPN/bin/AmneziaVPN-service
+/opt/AmneziaVPN/bin/AmneziaVPN-service --help
+cat /opt/AmneziaVPN/AmneziaVPN.service
