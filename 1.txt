@@ -9,3 +9,5 @@ libXrandr \
 libXi \
 libxcb \
 libxkbcommon-x11
+
+sudo xbps-install -y xcb-util-wm
