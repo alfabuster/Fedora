@@ -1,115 +1,30 @@
-Сеть держит 10 минут без падений — значит вылечили, каменно. Теперь VSCodium.
+Шаг 1 — посмотреть, что override вообще записал. Возможно, команда с переносами строк (\) вставилась криво, и в override попал мусор:
 
-Причина проста: Flatpak-приложения не создают команду в терминале. Поэтому vscodium и com.vscodium.codium в шелле не находятся — так и должно быть. Запускается Flatpak-приложение вот так:
+sh
+flatpak override --user --show com.vscodium.codium
+
+Покажите вывод. Там должно быть что-то вроде [Context] с sockets=wayland; и [Environment] с нужной переменной. Если видите обрезки или лишние строки — override записался неправильно.
+
+Шаг 2 — сбросить override начисто и вернуться к рабочему состоянию. Раз без override запуск с флагом работал — уберём кривой override совсем:
+
+sh
+flatpak override --user --reset com.vscodium.codium
+
+После этого проверьте, что вернулись к рабочему варианту:
+
+sh
+flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platform=wayland
+
+Окно должно снова открыться, как раньше. Если да — база не потеряна, просто override был кривой.
+
+Шаг 3 — задать override правильно, одной строкой (без переносов \, которые могли всё испортить при вставке через залитый терминал):
+
+sh
+flatpak override --user --socket=wayland --env=ELECTRON_OZONE_PLATFORM_HINT=wayland com.vscodium.codium
+
+Именно в одну строку. Затем:
 
 sh
 flatpak run com.vscodium.codium
 
-Проверьте — окно должно открыться (если да, скажите, там могут быть нюансы с Wayland).
-
-Почему не видно в Win+D (лаунчере noctalia). Flatpak кладёт свои .desktop-файлы в /var/lib/flatpak/exports/share/applications/, но лаунчеры (fuzzel, noctalia) видят их только если этот путь есть в XDG_DATA_DIRS. У свежих сессий на Void его часто нет — отсюда «приложение установлено, но в меню его нет».
-
-Лечится добавлением пути в окружение сессии. Впишите в ~/.bash_profile (или ~/.zprofile):
-
-sh
-export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share"
-
-Затем перезапустите сессию niri (Win+Shift+E, автологин вернёт вас обратно) — чтобы niri и noctalia подхватили новый XDG_DATA_DIRS. После этого VSCodium появится в Win+D.
-
-Проверка, что путь подхватился:
-
-sh
-echo $XDG_DATA_DIRS | tr ':' '\n' | grep flatpak    # должна быть строка с flatpak
-
-Одна оговорка про VSCodium под Wayland, чтобы не удивляться. Electron-приложения (а VSCodium — Electron) по умолчанию иногда стартуют через XWayland и могут быть чуть размытыми на HiDPI или мазать шрифтами. Если увидите такое — заставьте его в нативный Wayland флагом:
-
-sh
-flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platform=wayland
-
-Если так чётче — пропишем этот флаг в его .desktop через flatpak override, чтобы работало из лаунчера автоматически. Но сначала проверьте обычный запуск.
-
-Итог по шагам: flatpak run com.vscodium.codium (убедиться, что вообще стартует) → добавить XDG_DATA_DIRS в ~/.bash_profile → перезапуск сессии → появится в Win+D. Скажите, открылось ли окно обычным flatpak run — от этого зависит, лезть ли в Wayland-флаги.
-
-
-
-Проверка 1 — попробовать оба режима явно. Запустите по очереди и смотрите, какой откроет окно:
-
-sh
-flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platform=wayland
-
-Не открылось — тогда через XWayland:
-
-sh
-flatpak run com.vscodium.codium --ozone-platform=x11
-
-Проверка 2 — а xwayland-satellite вообще запущен? Вариант с x11 (и многие Electron-приложения по умолчанию) требует XWayland, а в niri его нет без xwayland-satellite. Проверьте:
-
-sh
-pgrep -a xwayland-satellite
-
-Пусто — ставим и запускаем:
-
-sh
-sudo xbps-install xwayland-satellite
-xwayland-satellite &
-
-И добавьте в ~/.config/niri/config.kdl для автозапуска на будущее:
-
-kdl
-spawn-at-startup "xwayland-satellite"
-
-После этого повторите запуск с --ozone-platform=x11.
-
-Проверка 3 — если оба флага молчат, смотрим саму ошибку. Flatpak-обёртка могла проглотить сообщение. Запустите с подробным выводом:
-
-sh
-flatpak run --verbose com.vscodium.codium 2>&1 | tail -30
-
-Там будет реальная причина — например, cannot open display, GBM, Ozone, или что-то про песочницу. Покажите последние строки — по ним скажу точно.
-
-Проверка 4 — портал. Flatpak-приложениям для нормальной работы под Wayland нужен xdg-desktop-portal. Убедитесь, что он есть:
-
-sh
-pgrep -a xdg-desktop-portal
-
-Пусто — доставьте sudo xbps-install xdg-desktop-portal xdg-desktop-portal-gtk и перезапустите сессию.
-
-Мой прогноз: у вас не запущен xwayland-satellite, а VSCodium по умолчанию лезет в X11 — отсюда тишина. Так что самый вероятный быстрый фикс — Проверка 2 (поставить и запустить xwayland-satellite), потом запуск с --ozone-platform=wayland.
-
-Начните с pgrep -a xwayland-satellite и flatpak run --verbose com.vscodium.codium 2>&1 | tail -30 — эти два вывода покажут корень. Скиньте их, и я не буду гадать, а назову точную причину.
-
-
-
-
-Способ правильный и постоянный — через flatpak override. Он говорит VSCodium запускаться в Wayland сам по себе, без флагов в командной строке:
-
-sh
-flatpak override --user \
-  --socket=wayland \
-  --env=ELECTRON_OZONE_PLATFORM_HINT=wayland \
-  com.vscodium.codium
-
-Что это делает: --socket=wayland даёт песочнице доступ к Wayland, а ELECTRON_OZONE_PLATFORM_HINT=wayland — стандартный способ сказать любому Electron-приложению «стартуй на Wayland» без ручных --ozone-platform. После этого flatpak run com.vscodium.codium (и запуск из лаунчера) откроют окно сразу, нативно.
-
-Проверьте, что сработало:
-
-sh
-flatpak run com.vscodium.codium     # должно открыться БЕЗ всяких флагов
-
-Теперь — чтобы появился в Win+D. Лаунчер noctalia видит приложения по .desktop-файлам, а Flatpak кладёт их в отдельный путь, которого нет в окружении сессии. Добавьте его в ~/.bash_profile:
-
-sh
-echo 'export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share"' >> ~/.bash_profile
-
-Затем перезапустите сессию (Win+Shift+E → автологин вернёт вас) — чтобы niri и noctalia прочитали новый XDG_DATA_DIRS.
-
-Проверка после перезапуска:
-
-sh
-echo $XDG_DATA_DIRS | tr ':' '\n' | grep flatpak    # должна быть строка с flatpak
-
-Есть строка — значит Win+D теперь найдёт «VSCodium».
-
-Итого три команды: flatpak override (закрепить Wayland) → строка XDG_DATA_DIRS в ~/.bash_profile → перезапуск сессии. После этого VSCodium стартует и из терминала, и из лаунчера, сразу нативным окном.
-
-Кстати, flatpak override — это ваш универсальный ключ для всех будущих Flatpak-приложений: тот же приём (--socket=wayland --env=ELECTRON_OZONE_PLATFORM_HINT=wayland) заставит нативно работать Discord, Spotify и прочий Electron-зоопарк, который вы наверняка ещё поставите. Так что запомните этот рецепт.
+Должно открыться уже без флагов.
