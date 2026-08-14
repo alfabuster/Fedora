@@ -1,0 +1,44 @@
+ flatpak install flathub com.vscodium.codium
+flatpak run com.vscodium.codium
+Looking for matches…
+Required runtime for com.vscodium.codium/x86_64/stable (runtime/org.freedesktop.Sdk/x86_64/25.08) found in remote flathub
+Do you want to install it? [Y/n]: y
+
+com.vscodium.codium permissions:
+    ipc                    network               fallback-x11                 pulseaudio
+    ssh-auth               wayland               devices                      devel
+    file access [1]        dbus access [2]       system dbus access [3]
+
+    [1] host, xdg-config/kdeglobals:ro, xdg-run/gnupg:ro
+    [2] com.canonical.AppMenu.Registrar, org.freedesktop.Flatpak, org.freedesktop.secrets,
+        org.kde.kwalletd5
+    [3] org.freedesktop.login1
+
+
+        ID                                        Branch      Op Remote  Download
+ 1. [✓] org.freedesktop.Platform.GL.default       25.08       i  flathub 142.9 MB / 143.9 MB
+ 2. [✓] org.freedesktop.Platform.GL.default       25.08-extra i  flathub  26.7 MB / 144.0 MB
+ 3. [✓] org.freedesktop.Platform.GL.nvidia-595-84 1.4         i  flathub 304.6 MB / 305.0 MB
+ 4. [✓] org.freedesktop.Platform.VAAPI.Intel      25.08       i  flathub  13.9 MB / 14.0 MB
+ 5. [✓] org.freedesktop.Platform.VAAPI.nvidia     25.08       i  flathub  47.4 kB / 50.6 kB
+ 6. [✓] org.freedesktop.Platform.codecs-extra     25.08-extra i  flathub  14.2 MB / 14.4 MB
+ 7. [✓] org.freedesktop.Sdk.Locale                25.08       i  flathub 192.6 MB / 395.2 MB
+ 8. [✓] org.freedesktop.Sdk                       25.08       i  flathub 522.1 MB / 598.6 MB
+ 9. [✓] com.vscodium.codium                       stable      i  flathub 207.6 MB / 218.9 MB
+
+Installation complete.
+com.vscodium.codium-wrapper: Setting up NPM packages
+com.vscodium.codium-wrapper: Setting up Cargo packages
+com.vscodium.codium-wrapper: Setting up Python packages
+com.vscodium.codium-wrapper: 'ruby' is not available
+
+~ 
+❯ vscodium
+bash: vscodium: command not found
+
+~ 
+❯ com.vscodium.codium
+bash: com.vscodium.codium: command not found
+
+~ 
+❯ 
