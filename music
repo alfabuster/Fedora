@@ -7,19 +7,25 @@ flatpak install flathub io.bassi.Amberol
 
 
 
-❯ pactl info
-Server String: /run/user/1000/pulse/native
-Library Protocol Version: 35
-Server Protocol Version: 35
-Is Local: yes
-Client Index: 185
-Tile Size: 65472
-User Name: den
-Host Name: niri
-Server Name: PulseAudio (on PipeWire 1.6.7)
-Server Version: 15.0.0
-Default Sample Specification: float32le 2ch 48000Hz
-Default Channel Map: front-left,front-right
-Default Sink: alsa_output.pci-0000_00_1f.3.analog-stereo
-Default Source: alsa_input.pci-0000_00_1f.3.analog-stereo
-Cookie: 7eb1:af7f
+Проверьте и поставьте:
+
+sh
+xbps-query -Rs pipewire alsa      # посмотреть все пакеты pipewire/alsa в репо
+sudo xbps-install alsa-pipewire   # правильное имя на Void
+
+Это и есть тот самый ALSA-плагин, который перенаправляет ALSA-приложения (ваш cmus) в PipeWire.
+
+После установки создайте редирект (если ещё не создали) — /etc/alsa/conf.d/50-pipewire.conf часто уже кладётся самим пакетом, но подстрахуемся через /etc/asound.conf:
+
+sh
+sudo tee /etc/asound.conf <<'EOF'
+pcm.!default {
+    type pipewire
+    hint.description "PipeWire"
+}
+ctl.!default {
+    type pipewire
+}
+EOF
+
+Перезапустите cmus, выход оставьте alsa (:set output_plugin=alsa) — теперь он пойдёт через PipeWire, и «busy» уйдёт.
