@@ -1,0 +1,24 @@
+OBS через Flathub — и тут пляски будут, честно предупреждаю, но по хорошей причине. OBS — Electron/Qt-приложение с захватом экрана, а захват под Wayland требует порталов. Ставим:
+
+sh
+flatpak install flathub com.obsproject.Studio
+
+После установки — три обязательных штриха, иначе OBS либо не запустится нормально, либо не увидит экран:
+
+Wayland-режим (тот же трюк, что с VSCodium):
+sh
+flatpak override --user --socket=wayland --env=QT_QPA_PLATFORM=wayland com.obsproject.Studio
+
+(OBS на Qt, поэтому переменная QT_QPA_PLATFORM, а не Electron-овская.)
+
+Доступ к порталу захвата экрана. OBS под niri захватывает экран через xdg-desktop-portal (протокол PipeWire ScreenCast). Убедитесь, что портал есть и запущен:
+sh
+pgrep -a xdg-desktop-portal || sudo xbps-install xdg-desktop-portal xdg-desktop-portal-gtk
+
+Внутри OBS источник экрана добавляется как «Screen Capture (PipeWire)» — не как «Display Capture» (та под X11). Выберете PipeWire-вариант — выскочит окошко портала с выбором монитора.
+
+Доступ к дискам/флешкам для записи (если пишете на внешний диск):
+sh
+flatpak override --user --filesystem=/run/media com.obsproject.Studio
+
+Про NVIDIA-кодирование: у вас RTX 3060, и OBS может писать через NVENC (аппаратный кодировщик, не грузит процессор). Но во Flatpak это требует, чтобы стоял Flatpak-runtime NVIDIA (он обычно ставится автоматически как зависимость — вы видели GL.nvidia-595 при установке VSCodium). Если NVENC в OBS не появится — скажите, доставим org.freedesktop.Platform.GL.nvidia нужной версии.
