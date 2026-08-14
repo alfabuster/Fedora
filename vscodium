@@ -1,0 +1,31 @@
+Сеть держит 10 минут без падений — значит вылечили, каменно. Теперь VSCodium.
+
+Причина проста: Flatpak-приложения не создают команду в терминале. Поэтому vscodium и com.vscodium.codium в шелле не находятся — так и должно быть. Запускается Flatpak-приложение вот так:
+
+sh
+flatpak run com.vscodium.codium
+
+Проверьте — окно должно открыться (если да, скажите, там могут быть нюансы с Wayland).
+
+Почему не видно в Win+D (лаунчере noctalia). Flatpak кладёт свои .desktop-файлы в /var/lib/flatpak/exports/share/applications/, но лаунчеры (fuzzel, noctalia) видят их только если этот путь есть в XDG_DATA_DIRS. У свежих сессий на Void его часто нет — отсюда «приложение установлено, но в меню его нет».
+
+Лечится добавлением пути в окружение сессии. Впишите в ~/.bash_profile (или ~/.zprofile):
+
+sh
+export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share"
+
+Затем перезапустите сессию niri (Win+Shift+E, автологин вернёт вас обратно) — чтобы niri и noctalia подхватили новый XDG_DATA_DIRS. После этого VSCodium появится в Win+D.
+
+Проверка, что путь подхватился:
+
+sh
+echo $XDG_DATA_DIRS | tr ':' '\n' | grep flatpak    # должна быть строка с flatpak
+
+Одна оговорка про VSCodium под Wayland, чтобы не удивляться. Electron-приложения (а VSCodium — Electron) по умолчанию иногда стартуют через XWayland и могут быть чуть размытыми на HiDPI или мазать шрифтами. Если увидите такое — заставьте его в нативный Wayland флагом:
+
+sh
+flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platform=wayland
+
+Если так чётче — пропишем этот флаг в его .desktop через flatpak override, чтобы работало из лаунчера автоматически. Но сначала проверьте обычный запуск.
+
+Итог по шагам: flatpak run com.vscodium.codium (убедиться, что вообще стартует) → добавить XDG_DATA_DIRS в ~/.bash_profile → перезапуск сессии → появится в Win+D. Скажите, открылось ли окно обычным flatpak run — от этого зависит, лезть ли в Wayland-флаги.
