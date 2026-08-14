@@ -54,3 +54,183 @@ sh
 flatpak run --env=QT_QPA_PLATFORM=wayland com.obsproject.Studio
 
 Вот это точно заставит OBS стартовать в Wayland. Если так пункт «Screen Capture» появится — значит дело было в том, что override не применялся, и тогда зашьём флаг в .desktop (как с VSCodium).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ flatpak override --user --show com.obsproject.Studio
+[Context]
+sockets=wayland;
+filesystems=/run/media;
+
+[Session Bus Policy]
+org.freedesktop.portal.Desktop=talk
+
+[Environment]
+QT_QPA_PLATFORM=wayland
+
+  den ~   20:43  ❯ flatpak override --user --socket=wayland --env=QT_QPA_PLATFORM=wayland com.obsproject.Studio
+
+  den ~   20:43  ❯ flatpak run com.obsproject.Studio
+Call to org.freedesktop.portal.Settings.ReadAll failed QDBusError("org.freedesktop.DBus.Error.UnknownMethod", "No such interface “org.freedesktop.portal.Settings” on object at path /org/freedesktop/portal/desktop")
+debug: Attempted path: /app/bin/../share/obs/obs-studio/locale/en-US.ini
+debug: Attempted path: /app/bin/../share/obs/obs-studio/locale.ini
+debug: Attempted path: /app/bin/../share/obs/obs-studio/themes
+debug: Attempted path: /app/bin/../share/obs/obs-studio/themes/
+warning: Get on org.freedesktop.portal.Settings returned an invalid reply
+info: Platform: Wayland
+info: CPU Name: 11th Gen Intel(R) Core(TM) i7-11370H @ 3.30GHz
+info: CPU Speed: 4567.027MHz
+info: Physical Cores: 4, Logical Cores: 8
+info: Physical Memory: 15674MB Total, 7628MB Free
+info: Kernel Version: Linux 6.18.44_1
+info: Flatpak Branch: stable
+info: Flatpak Arch: x86_64
+info: Flatpak Commit: a3a5cbd575a1ab74c239cd3fd6903377377a43ef65e936271f655d458dc520b4
+info: Flatpak Runtime: runtime/org.freedesktop.Platform/x86_64/25.08
+info: Runtime Extensions:
+info:  - org.freedesktop.Platform.GL.default
+info:  - org.freedesktop.Platform.GL.nvidia-595-84
+info:  - org.freedesktop.Platform.Locale
+info:  - org.freedesktop.Platform.VAAPI.Intel
+info:  - org.freedesktop.Platform.VAAPI.nvidia
+info:  - org.freedesktop.Platform.codecs-extra
+info:  - org.freedesktop.Platform.GL.default
+info: Flatpak Framework Version: 1.18.1
+info: Session Type: tty
+info: Current Date/Time: 2026-08-14, 20:43:50
+info: Browser Hardware Acceleration: true
+info: Qt Version: 6.11.1 (runtime), 6.11.1 (compiled)
+info: Portable mode: false
+info: OBS 32.2.1 (linux)
+info: ---------------------------------
+info: ---------------------------------
+info: audio settings reset:
+	samples per sec: 48000
+	speakers:        2
+	max buffering:   960 milliseconds
+	buffering type:  dynamically increasing
+info: ---------------------------------
+info: Initializing OpenGL...
+info: Using EGL/Wayland
+info: Initialized EGL 1.5
+info: Loading up OpenGL on adapter Intel Mesa Intel(R) Iris(R) Xe Graphics (TGL GT2)
+info: OpenGL loaded successfully, version 4.6 (Core Profile) Mesa 26.1.5 (git-6a02618ccf), shading language 4.60
+info: ---------------------------------
+info: video settings reset:
+	base resolution:   1920x1080
+	output resolution: 1920x1080
+	downscale filter:  Bicubic
+	fps:               60/1
+	format:            NV12
+	YUV mode:          Rec. 709/Partial
+info: NV12 texture support enabled
+info: P010 texture support not available
+info: Audio monitoring device:
+	name: Default
+	id: default
+info: ---------------------------------
+warning: No AJA devices found, skipping loading AJA UI plugin
+warning: Failed to initialize module 'aja-output-ui.so'
+warning: No AJA devices found, skipping loading AJA plugin
+warning: Failed to initialize module 'aja.so'
+info: [pipewire] No capture sources available
+warning: v4l2loopback not installed, virtual camera not registered
+info: [obs-browser]: Version 2.26.9
+info: [obs-browser]: CEF Version 127.0.6533.120 (runtime), 127.0.0-6533-fix-stutter-and-osr-extra-info.3042+g176b09c+chromium-127.0.6533.120 (compiled)
+info: VAAPI: API version 1.22
+info: FFmpeg VAAPI H264 encoding supported
+error: VAAPI: Failed to initialize display in vaapi_device_av1_supported
+info: FFmpeg VAAPI AV1 encoding not supported
+info: FFmpeg VAAPI HEVC encoding supported
+warning: [NVENC] Test process failed: cuda_init_999
+info: NVENC not supported
+warning: Failed to initialize module 'obs-nvenc.so'
+info: [obs-websocket] [obs_module_load] you can haz websockets (Version: 5.7.4 | RPC Version: 1)
+info: [obs-websocket] [obs_module_load] Qt version (compile-time): 6.11.1 | Qt version (run-time): 6.11.1
+info: [obs-websocket] [obs_module_load] Linked ASIO Version: 103200
+info: [obs-websocket] [obs_module_load] Module loaded.
+info: ---------------------------------
+info:   Loaded Modules:
+info:     text-freetype2.so
+info:     rtmp-services.so
+info:     obs-x264.so
+info:     obs-websocket.so
+info:     obs-webrtc.so
+info:     obs-vst.so
+info:     obs-transitions.so
+info:     obs-qsv11.so
+info:     obs-outputs.so
+info:     obs-libfdk.so
+info:     obs-filters.so
+info:     obs-ffmpeg.so
+info:     obs-browser.so
+info:     linux-v4l2.so
+info:     linux-pulseaudio.so
+info:     linux-pipewire.so
+info:     linux-jack.so
+info:     linux-capture.so
+info:     image-source.so
+info:     frontend-tools.so
+info: ---------------------------------
+info: ---------------------------------
+info: Available Encoders:
+info:   Video Encoders:
+info: 	- ffmpeg_svt_av1 (SVT-AV1)
+info: 	- ffmpeg_aom_av1 (AOM AV1)
+info: 	- ffmpeg_vaapi_tex (FFmpeg VAAPI H.264)
+info: 	- hevc_ffmpeg_vaapi_tex (FFmpeg VAAPI HEVC)
+info: 	- obs_qsv11_v2 (QuickSync H.264)
+info: 	- obs_qsv11_hevc (QuickSync HEVC)
+info: 	- obs_x264 (x264)
+info:   Audio Encoders:
+info: 	- ffmpeg_aac (FFmpeg AAC)
+info: 	- ffmpeg_opus (FFmpeg Opus)
+info: 	- ffmpeg_pcm_s16le (FFmpeg PCM (16-bit))
+info: 	- ffmpeg_pcm_s24le (FFmpeg PCM (24-bit))
+info: 	- ffmpeg_pcm_f32le (FFmpeg PCM (32-bit float))
+info: 	- ffmpeg_alac (FFmpeg ALAC (24-bit))
+info: 	- ffmpeg_flac (FFmpeg FLAC (16-bit))
+info: 	- libfdk_aac (libfdk AAC)
+info: ==== Startup complete ===============================================
+warning: Call for getting org.freedesktop.portal.FileChooser version failed QDBusError("org.freedesktop.DBus.Error.InvalidArgs", "No such interface “org.freedesktop.portal.FileChooser”")
+info: All scene data cleared
+info: ------------------------------------------------
+info: Device for 'Audio Output Capture' source Desktop Audio is also used for audio monitoring.
+Deduplication logic is being applied to all monitored sources.
+info: pulse-input: Server name: 'PulseAudio (on PipeWire 1.6.7) 15.0.0'
+info: pulse-input: Audio format: s32le, 48000 Hz, 2 channels
+info: pulse-input: Started recording from 'alsa_output.pci-0000_00_1f.3.analog-stereo.monitor' (default)
+info: [Loaded global audio device]: 'Desktop Audio'
+info: pulse-input: Server name: 'PulseAudio (on PipeWire 1.6.7) 15.0.0'
+info: pulse-input: Audio format: s32le, 48000 Hz, 2 channels
+info: pulse-input: Started recording from 'alsa_input.pci-0000_00_1f.3.analog-stereo' (default)
+info: [Loaded global audio device]: 'Mic/Aux'
+info: Switched to scene 'Scene'
+info: ------------------------------------------------
+info: Loaded scenes:
+info: - scene 'Scene':
+info: ------------------------------------------------
+info: Device for 'Audio Output Capture' source Desktop Audio is also used for audio monitoring.
+Deduplication logic is being applied to all monitored sources.
+info: adding 21 milliseconds of audio buffering, total audio buffering is now 21 milliseconds (source: Desktop Audio)
+
+info: adding 21 milliseconds of audio buffering, total audio buffering is now 42 milliseconds (source: Mic/Aux)
