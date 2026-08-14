@@ -27,52 +27,9 @@ flatpak override --user --filesystem=/run/media com.obsproject.Studio
 flatpak override --user --talk-name=org.freedesktop.portal.Desktop com.obsproject.Studio
 
 
+Соберём точный рецепт:
 
-
-1. Проверьте, что override реально записался:
-
-sh
-flatpak override --user --show com.obsproject.Studio
-
-Должно быть sockets=wayland и QT_QPA_PLATFORM=wayland. Если пусто или без wayland — значит слетело.
-
-2. Задайте Wayland-режим заново, одной строкой (и добавьте доступ к сокету, и переменную):
-
-sh
-flatpak override --user --socket=wayland --env=QT_QPA_PLATFORM=wayland com.obsproject.Studio
-
-3. Полностью закройте OBS и запустите заново — БЕЗ sudo:
-
-sh
-flatpak run com.obsproject.Studio
-
-При старте в терминале НЕ должно быть строки qt.qpa.xcb: could not connect to display. Если OBS пошёл на Wayland — в + → Sources появится «Screen Capture (PipeWire)».
-
-Если override упрямо не срабатывает (OBS всё равно лезет в xcb) — задайте переменную прямо при запуске, в обход:
-
-sh
-flatpak run --env=QT_QPA_PLATFORM=wayland com.obsproject.Studio
-
-Вот это точно заставит OBS стартовать в Wayland. Если так пункт «Screen Capture» появится — значит дело было в том, что override не применялся, и тогда зашьём флаг в .desktop (как с VSCodium).
-
-
-
-
-
-Чиним по шагам, из терминала:
-
-1. Проверьте, какие порталы установлены и запущены:
-
-sh
-xbps-query -s xdg-desktop-portal
-pgrep -a xdg-desktop-portal
-
-2. Поставьте wlroots-бэкенд портала — он и даёт ScreenCast для niri:
-
-sh
-sudo xbps-install xdg-desktop-portal-wlr
-
-3. Скажите niri использовать именно wlr-бэкенд для ScreenCast. Создайте ~/.config/xdg-desktop-portal/niri-portals.conf (или проверьте, что он есть):
+1. Конфиг порталов — ~/.config/xdg-desktop-portal/portals.conf (именно portals.conf, не niri-portals.conf):
 
 ini
 [preferred]
@@ -80,23 +37,26 @@ default=gtk
 org.freedesktop.impl.portal.ScreenCast=wlr
 org.freedesktop.impl.portal.Screenshot=wlr
 
-Это направляет захват экрана в wlr-бэкенд, а остальное (диалоги файлов) — в gtk.
+2. Подсунуть wlr-порталу «sway» как окружение. Это и есть недостающий кусок. Добавьте в блок environment { } вашего ~/.config/niri/config.kdl:
 
-4. Перезапустите порталы и OBS. Проще всего — перезагрузить сессию niri (Win+Shift+E, автологин вернёт). Или вручную:
+kdl
+    XDG_CURRENT_DESKTOP "sway"
+
+Осторожно: эта переменная глобально повлияет и на другие приложения (некоторые по ней меняют поведение). Если что-то поедет — уберём и зайдём точечнее, но для старта проще так.
+
+3. Перезапустить порталы (по рецепту из #309):
 
 sh
-pkill xdg-desktop-portal
-# niri перезапустит их сам, или выйдите-зайдите в сессию
+systemctl --user restart xdg-desktop-portal xdg-desktop-portal-wlr
 
-5. Запустите OBS заново (без sudo, в Wayland):
+Если у вас порталы не под systemd (на Void обычно так) — просто перезапустите сессию niri (Win+Shift+E, автологин вернёт).
+
+4. Проверка, что ScreenCast-интерфейс наконец появился (это лакмус):
 
 sh
-flatpak run com.obsproject.Studio
-
-В логе на старте [pipewire] больше не должно быть «No capture sources», а в + → Sources появится «Screen Capture (PipeWire)».
-
-
-
+busctl --user introspect org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop | grep -i ScreenCast
+Есть строка ScreenCast → портал ожил, в OBS появится «Screen Capture (PipeWire)».
+Пусто → портал всё ещё не поднял захват.
 
 
 
