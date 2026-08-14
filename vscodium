@@ -28,3 +28,37 @@ sh
 flatpak run com.vscodium.codium
 
 Должно открыться уже без флагов.
+
+
+
+
+❯ flatpak override --user --show com.vscodium.codium
+[Context]
+sockets=wayland;
+
+[Environment]
+ELECTRON_OZONE_PLATFORM_HINT=wayland
+
+~ 
+❯ flatpak override --user --reset com.vscodium.codium
+
+~ 
+❯ flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platform=wayland
+com.vscodium.codium-wrapper: Setting up NPM packages
+com.vscodium.codium-wrapper: Setting up Cargo packages
+com.vscodium.codium-wrapper: Setting up Python packages
+com.vscodium.codium-wrapper: 'ruby' is not available
+Option 'ozone-platform' is defined more than once. Using value 'wayland'.
+Warning: 'enable-features' is not in the list of known options, but still passed to Electron/Chromium.
+
+~ 
+❯ flatpak override --user --socket=wayland --env=ELECTRON_OZONE_PLATFORM_HINT=wayland com.vscodium.codium
+
+~ 
+❯ flatpak run com.vscodium.codium
+com.vscodium.codium-wrapper: Setting up NPM packages
+com.vscodium.codium-wrapper: Setting up Cargo packages
+com.vscodium.codium-wrapper: Setting up Python packages
+com.vscodium.codium-wrapper: 'ruby' is not available
+
+~ 
