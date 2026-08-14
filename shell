@@ -98,32 +98,23 @@ kdl
 
 
 
+❯ sudo xbps-install -Su
+[*] Updating repository `https://repo.voiders.dev/x86_64-repodata' ...
+x86_64-repodata: 27KB [avg rate: 3406KB/s]
+[*] Updating repository `https://repo-default.voidlinux.org/current/x86_64-repodata' ...
+[*] Updating repository `https://repo-default.voidlinux.org/current/nonfree/x86_64-repodata' ...
 
+Name             Action    Version           New version            Download size
+libgbm           update    26.1.6_1          26.1.7_1               6764B 
+libharfbuzz      update    14.3.0_1          14.3.1_1               1252KB 
+mesa             update    26.1.6_1          26.1.7_1               796KB 
+mesa-dri         update    26.1.6_1          26.1.7_1               22KB 
+mesa-libgallium  update    26.1.6_1          26.1.7_1               12MB 
+removed-packages update    0.1.20260702_1    0.1.20260809_1         9600B 
+wpa_supplicant   update    2.11_4            2.12_1                 1481KB 
 
-❯ sudo xbps-install kitty fish-shell starship zoxide fzf eza bat yazi
-ERROR: Package `starship' already installed.
-
-Name                    Action    Version           New version            Download size
-kitty-terminfo          install   -                 0.48.2_1               - 
-kitty-shell-integration install   -                 0.48.2_1               - 
-kitty-kitten            install   -                 0.48.2_1               - 
-libxxHash               install   -                 0.8.2_1                - 
-kitty                   install   -                 0.48.2_1               - 
-fish-shell              install   -                 4.8.1_1                - 
-zoxide                  install   -                 0.10.0_1               - 
-fzf                     install   -                 0.74.2_1               - 
-llhttp                  install   -                 9.4.1_1                - 
-libgit2-1.9             install   -                 1.9.6_1                760KB 
-eza                     install   -                 0.23.5_1               783KB 
-bat                     install   -                 0.26.1_1               2681KB 
-yazi                    install   -                 26.1.22_2              8694KB 
-
-Size to download:               13MB
-Size required on disk:         114MB
+Size to download:               15MB
+Size required on disk:          52MB
 Space available on disk:        29GB
 
 Do you want to continue? [Y/n] y
-
-[*] Downloading packages
-ERROR: [trans] failed to download `libgit2-1.9-1.9.6_1' signature from `https://repo-default.voidlinux.org/current': Not Found
-ERROR: Transaction failed! see above for errors.
