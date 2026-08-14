@@ -89,3 +89,21 @@ sh
 echo 'eval "$(starship init bash)"' >> ~/.bashrc
 
 Затем откройте новый терминал. И проверьте, что starship реально установлен: which starship.
+
+
+
+1. Из fuzzel / лаунчера (через .desktop-файл). Fuzzel показывает приложения по их .desktop-файлам. У Amnezia он есть (/opt/AmneziaVPN/AmneziaVPN.desktop), но там наверняка не прописан xcb, поэтому из лаунчера он падал бы так же, как нативно. Создадим свой правленый:
+
+sh
+mkdir -p ~/.local/share/applications
+cat > ~/.local/share/applications/amneziavpn.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=AmneziaVPN
+Exec=env QT_QPA_PLATFORM=xcb /opt/AmneziaVPN/bin/AmneziaVPN
+Icon=/opt/AmneziaVPN/AmneziaVPN.png
+Terminal=false
+Categories=Network;
+EOF
+
+Теперь в fuzzel (Win+D) наберите «Amnezia» — запустится уже с правильным xcb. То же и для запуска из панели/меню noctalia — оно берёт приложения из тех же .desktop-файлов.
