@@ -1,100 +1,46 @@
-1. Стоит ли wlr-бэкенд и запущен ли он:
+wf-recorder — вот это то, что под niri работает нативно, минуя всю сегодняшнюю порталопляску. Пользоваться ей просто, разберу.
+
+Установка:
 
 sh
-ls /usr/share/xdg-desktop-portal/portals/          # есть ли wlr.portal
-pgrep -af xdg-desktop-portal                        # какие порталы реально запущены
+sudo xbps-install wf-recorder
 
-2. Видит ли PipeWire ваш экран как источник видео (без этого захвата не будет в принципе):
-
-sh
-pw-cli ls Node | grep -iE 'class|monitor|screen'
-
-3. Что говорит сам wlr-портал при запуске — самое информативное. Найдите его бинарник и запустите вручную с логами:
+Базовое использование:
 
 sh
-find /usr -name 'xdg-desktop-portal-wlr' 2>/dev/null
-# затем (путь из вывода выше):
-pkill xdg-desktop-portal
-XDG_CURRENT_DESKTOP=sway /usr/libexec/xdg-desktop-portal-wlr -l TRACE 2>&1 | head -40 &
-/usr/libexec/xdg-desktop-portal -rv 2>&1 | grep -iE 'wlr|screencast|backend' &
+# записать весь экран → файл:
+wf-recorder -f ~/запись.mp4
 
-В выводе ключевое: регистрируется ли wlr как бэкенд ScreenCast, или ругается на окружение/протокол.
+# записать выделенную мышью область:
+wf-recorder -g "$(slurp)" -f ~/запись.mp4
 
+# со звуком (системный звук + микрофон через PipeWire):
+wf-recorder -a -f ~/запись.mp4
 
+Остановка записи — Ctrl+C в том терминале, где запустили. Файл сразу готов.
 
+Полезные опции:
 
+-a — писать звук (по умолчанию берёт дефолтный источник PipeWire).
+-g "$(slurp)" — область выделяете мышью перед стартом.
+-c h264_vaapi -d /dev/dri/renderD128 — аппаратное кодирование через вашу Intel-графику (не грузит процессор). Для длинных записей полезно.
+-r 60 — 60 fps (по умолчанию 60, можно снизить до 30 для меньшего размера файла).
+--audio=<источник> — конкретный аудиоисточник, если дефолтный не тот.
 
+Удобнее всего — повесить на клавиши в niri, чтобы старт/стоп по хоткею, а не бегать в терминал. В ~/.config/niri/config.kdl, в блок binds { }:
 
-  den ~   21:01  ❯ ls /usr/share/xdg-desktop-portal/portals/          # есть ли wlr.portal
- gtk.portal   wlr.portal
+kdl
+    // старт записи всего экрана со звуком
+    Mod+Shift+R { spawn "sh" "-c" "wf-recorder -a -f ~/Videos/rec-$(date +%F-%H%M%S).mp4"; }
+    // старт записи выделенной области
+    Mod+Alt+R   { spawn "sh" "-c" "wf-recorder -g \"$(slurp)\" -f ~/Videos/rec-$(date +%F-%H%M%S).mp4"; }
+    // СТОП записи (посылает Ctrl+C процессу wf-recorder)
+    Mod+Shift+X { spawn "pkill" "-INT" "wf-recorder"; }
 
-  den ~   21:03  ❯ pgrep -af xdg-desktop-portal                        # какие порталы реально запущены
-26542 /usr/libexec/xdg-desktop-portal
+Логика: Win+Shift+R — начать запись (имя файла с датой-временем, чтобы не перезатирать), Win+Shift+X — остановить. Файлы падают в ~/Videos/ (создайте папку: mkdir ~/Videos).
 
-  den ~   21:04  ❯ pw-cli ls Node | grep -iE 'class|monitor|screen'
- 		media.class = "Midi/Bridge"
- 		media.class = "Audio/Sink"
- 		media.class = "Audio/Source"
+Проверьте, что Mod+Shift+R не занят — у вас на нём мог висеть скриншот swappy. Если конфликт — возьмите другое сочетание, например Mod+R уже занят под ширину колонки, так что Mod+Shift+R/Mod+Alt+R обычно свободны.
 
-  den ~   21:04  ❯ find /usr -name 'xdg-desktop-portal-wlr' 2>/dev/null
-/usr/libexec/xdg-desktop-portal-wlr
-/usr/share/licenses/xdg-desktop-portal-wlr
+Проверка, что запись со звуком работает: запишите 10 секунд, откройте файл в mpv (mpv ~/Videos/rec-*.mp4) — должно быть и видео, и звук. Если звука нет — добавьте явный источник: сначала wpctl status (или pactl list sources short), найдите имя вашего вывода (тот alsa_output...monitor, что мы видели в OBS), и передайте его: wf-recorder -a=alsa_output.pci-0000_00_1f.3.analog-stereo.monitor -f ....
 
-  den ~   21:04  ❯ pkill xdg-desktop-portal
-pkill: pattern that searches for process name longer than 15 characters will result in zero matches
-Try `pkill -f' option to match against the complete command line.
-
-  den ~   21:04  ❯ XDG_CURRENT_DESKTOP=sway /usr/libexec/xdg-desktop-portal-wlr -l TRACE 2>&1 | head -40 &
-                            /usr/libexec/xdg-desktop-portal -rv 2>&1 | grep -iE 'wlr|screencast|backend' &
-2026/08/14 21:05:07 [TRACE] - config: trying config file /home/den/.config/xdg-desktop-portal-wlr/sway
-2026/08/14 21:05:07 [TRACE] - config: trying config file /home/den/.config/xdg-desktop-portal-wlr/config
-2026/08/14 21:05:07 [TRACE] - config: trying config file /etc/xdg/xdg-desktop-portal-wlr/sway
-2026/08/14 21:05:07 [TRACE] - config: trying config file /etc/xdg/xdg-desktop-portal-wlr/config
-2026/08/14 21:05:07 [INFO] - config: no config file found, using the default config
-2026/08/14 21:05:07 [DEBUG] - config: outputname:  (null)
-2026/08/14 21:05:07 [DEBUG] - config: max_fps:  0.000000
-2026/08/14 21:05:07 [DEBUG] - config: exec_before:  (null)
-2026/08/14 21:05:07 [DEBUG] - config: exec_after:  (null)
-2026/08/14 21:05:07 [DEBUG] - config: chooser_cmd: (null)
-2026/08/14 21:05:07 [DEBUG] - config: chooser_type: default
-2026/08/14 21:05:07 [DEBUG] - config: force_mod_linear: 0
-2026/08/14 21:05:07 [DEBUG] - dbus: connected
-2026/08/14 21:05:07 [DEBUG] - wlroots: wl_display connected
-2026/08/14 21:05:07 [DEBUG] - pipewire: pw_loop created
-2026/08/14 21:05:07 [DEBUG] - pipewire: establishing connection to core
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wl_compositor  (Version: 6)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wl_subcompositor  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register xdg_wm_base  (Version: 7)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zxdg_decoration_manager_v1  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register org_kde_kwin_server_decoration_manager  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwlr_layer_shell_v1  (Version: 5)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register ext_session_lock_manager_v1  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wl_shm  (Version: 2)
-2026/08/14 21:05:07 [DEBUG] - wlroots: |-- registered to interface wl_shm (Version 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zxdg_output_manager_v1  (Version: 3)
-2026/08/14 21:05:07 [DEBUG] - wlroots: |-- registered to interface zxdg_output_manager_v1 (Version 3)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wp_fractional_scale_manager_v1  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_tablet_manager_v2  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_pointer_gestures_v1  (Version: 3)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_relative_pointer_manager_v1  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_pointer_constraints_v1  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register ext_idle_notifier_v1  (Version: 2)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_idle_inhibit_manager_v1  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wl_data_device_manager  (Version: 3)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_primary_selection_device_manager_v1  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwlr_data_control_manager_v1  (Version: 2)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register ext_data_control_manager_v1  (Version: 1)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wp_presentation  (Version: 2)
-2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wp_security_context_manager_v1  (Version: 1)
-XDP: loading /usr/share/xdg-desktop-portal/portals/wlr.portal
-XDP: portal implementation supports org.freedesktop.impl.portal.ScreenCast
-XDP: loading /usr/share/xdg-desktop-portal/portals/wlr.portal
-XDP: Skipping duplicate source wlr
-XDP: Preferred portals for interface 'org.freedesktop.impl.portal.ScreenCast': wlr
-XDP: Preferred portals for interface 'org.freedesktop.impl.portal.Screenshot': wlr
-(/usr/libexec/xdg-desktop-portal:28321): xdg-desktop-portal-WARNING **: 21:05:07.810: Not providing Settings portal: No working backend
-XDP: Found 'wlr' in configuration for org.freedesktop.impl.portal.Screenshot
-XDP: Using wlr.portal for org.freedesktop.impl.portal.Screenshot (interface specific config)
-XDP: Found 'wlr' in configuration for org.freedesktop.impl.portal.ScreenCast
-XDP: Using wlr.portal for org.freedesktop.impl.portal.ScreenCast (interface specific config)
-(/usr/libexec/xdg-desktop-portal:28321): xdg-desktop-portal-WARNING **: 21:05:07.895: Failed to create screen cast proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.wlr: Process org.freedesktop.impl.portal.desktop.wlr exited with status 1
+Итого: wf-recorder -a -f ~/запись.mp4 для старта, Ctrl+C для стопа — вот и вся запись экрана, нативно под niri, без OBS и порталов. Повесьте на хоткеи (блок выше) — и получите старт/стоп одной клавишей.
