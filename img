@@ -1,1 +1,53 @@
 sudo xbps-install imv zathura zathura-pdf-mupdf grim slurp swappy flameshot
+
+1. yazi открывает фото в Firefox вместо imv — это system-wide ассоциация файлов. yazi (как и всё в Linux) открывает файлы программой, назначенной по умолчанию для их типа. Сейчас для картинок назначен Firefox — меняем на imv. Задаётся через xdg-mime:
+
+sh
+xdg-mime default imv.desktop image/jpeg image/png image/gif image/webp image/bmp image/tiff
+
+Проверить, что применилось:
+
+sh
+xdg-mime query default image/jpeg     # должно вернуть imv.desktop
+
+Теперь и yazi, и любой другой способ «открыть картинку» пойдёт через imv. (Если imv.desktop не найдётся — гляньте точное имя: ls /usr/share/applications/ | grep -i imv, бывает imv-dir.desktop.)
+
+На будущее — это ваш универсальный ключ к ассоциациям: xdg-mime default <приложение>.desktop <тип>. Так же назначите zathura для PDF: xdg-mime default org.pwmt.zathura.desktop application/pdf.
+
+2. Как пользоваться grim + slurp + swappy — это конвейер из трёх утилит, каждая делает одно:
+
+grim — делает сам снимок (всего экрана или заданной области).
+slurp — даёт выделить область мышью (рисуете прямоугольник, возвращает координаты).
+swappy — открывает готовый снимок в редакторе для разметки (стрелки, текст, размытие, рамки — как во Flameshot).
+
+Связываются через пайп. Основные команды:
+
+sh
+# скриншот всего экрана сразу в редактор swappy:
+grim - | swappy -f -
+
+# скриншот ВЫДЕЛЕННОЙ области (slurp даёт выбрать мышью) в редактор:
+grim -g "$(slurp)" - | swappy -f -
+
+# просто сохранить область в файл без редактора:
+grim -g "$(slurp)" ~/screenshot.png
+
+В swappy после открытия: рисуете разметку мышью, инструменты — на панели снизу, сохранить — Ctrl+S (по умолчанию в ~/Pictures), скопировать в буфер — Ctrl+C.
+
+3. Вешаем скриншот на клавишу — раз PrtScr нет. В ~/.config/niri/config.kdl в блок binds { }. У вас сейчас Print { screenshot; } — оставьте его (встроенный UI niri, вдруг пригодится), а swappy повесьте на удобное сочетание. Варианты под ноут без PrtScr:
+
+kdl
+    // область → редактор swappy
+    Mod+Shift+S { spawn "sh" "-c" "grim -g \"$(slurp)\" - | swappy -f -"; }
+    // весь экран → редактор swappy
+    Mod+Print  { spawn "sh" "-c" "grim - | swappy -f -"; }
+
+Mod+Shift+S (Win+Shift+S — заодно как в Windows, привычно) — самый удобный для области с редактированием. Сохраните, niri перечитает на лету.
+
+Проверьте, не занят ли Mod+Shift+S чем-то ещё в конфиге (у вас там были noctalia-бинды). Если занят — возьмите Mod+P или Mod+Shift+P.
+
+Итого по шагам:
+
+xdg-mime default imv.desktop image/jpeg image/png ... — картинки открываются в imv (и в yazi тоже).
+Заодно xdg-mime default org.pwmt.zathura.desktop application/pdf — PDF в zathura.
+В config.kdl повесить Mod+Shift+S на grim -g "$(slurp)" - | swappy -f - — скриншот области с редактированием, без всякого PrtScr.
