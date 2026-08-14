@@ -60,3 +60,26 @@ sudo efibootmgr -o <void>,<windows>            # порядок: сначала 
 
 sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet /' /etc/default/grub
 sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+
+
+Шаг 1. Автологин на tty1. Void держит agetty-сервисы в /etc/sv/agetty-tty1. Правим его, чтобы он логинил den автоматически:
+
+sh
+sudo mkdir -p /etc/sv/agetty-tty1
+echo 'GETTY_ARGS="--autologin den --noclear"' | sudo tee /etc/sv/agetty-tty1/conf
+
+Шаг 2. Запуск niri при входе на tty1. Добавьте в конец ~/.bash_profile (если у вас zsh — то ~/.zprofile):
+
+sh
+cat >> ~/.bash_profile <<'EOF'
+
+# автозапуск niri только на первой консоли
+if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" = "1" ]; then
+    exec dbus-run-session niri
+fi
+EOF
+
+Здесь важны две вещи. exec заменяет шелл на niri — то есть niri станет вашей сессией целиком. dbus-run-session поднимает сессионную шину, без которой noctalia и порталы работают криво. А проверка XDG_VTNR = 1 означает «запускай niri только на tty1» — на остальные консоли (tty2–tty6) вы сможете уйти в обычный текстовый шелл, если что-то надо будет чинить. Это ваша страховочная сетка.
+
+Шаг 3. Убедитесь, что niri сам поднимает noctalia. В ~/.config/niri/config.kdl должна быть строка spawn-at-startup "noctalia" (она есть в том config.kdl, что я вам давал). Тогда после автологина niri стартует, noctalia стартует следом — и вы в готовом рабочем столе, ноль ручного ввода.
