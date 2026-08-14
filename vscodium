@@ -77,3 +77,39 @@ pgrep -a xdg-desktop-portal
 Мой прогноз: у вас не запущен xwayland-satellite, а VSCodium по умолчанию лезет в X11 — отсюда тишина. Так что самый вероятный быстрый фикс — Проверка 2 (поставить и запустить xwayland-satellite), потом запуск с --ozone-platform=wayland.
 
 Начните с pgrep -a xwayland-satellite и flatpak run --verbose com.vscodium.codium 2>&1 | tail -30 — эти два вывода покажут корень. Скиньте их, и я не буду гадать, а назову точную причину.
+
+
+
+
+Способ правильный и постоянный — через flatpak override. Он говорит VSCodium запускаться в Wayland сам по себе, без флагов в командной строке:
+
+sh
+flatpak override --user \
+  --socket=wayland \
+  --env=ELECTRON_OZONE_PLATFORM_HINT=wayland \
+  com.vscodium.codium
+
+Что это делает: --socket=wayland даёт песочнице доступ к Wayland, а ELECTRON_OZONE_PLATFORM_HINT=wayland — стандартный способ сказать любому Electron-приложению «стартуй на Wayland» без ручных --ozone-platform. После этого flatpak run com.vscodium.codium (и запуск из лаунчера) откроют окно сразу, нативно.
+
+Проверьте, что сработало:
+
+sh
+flatpak run com.vscodium.codium     # должно открыться БЕЗ всяких флагов
+
+Теперь — чтобы появился в Win+D. Лаунчер noctalia видит приложения по .desktop-файлам, а Flatpak кладёт их в отдельный путь, которого нет в окружении сессии. Добавьте его в ~/.bash_profile:
+
+sh
+echo 'export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share"' >> ~/.bash_profile
+
+Затем перезапустите сессию (Win+Shift+E → автологин вернёт вас) — чтобы niri и noctalia прочитали новый XDG_DATA_DIRS.
+
+Проверка после перезапуска:
+
+sh
+echo $XDG_DATA_DIRS | tr ':' '\n' | grep flatpak    # должна быть строка с flatpak
+
+Есть строка — значит Win+D теперь найдёт «VSCodium».
+
+Итого три команды: flatpak override (закрепить Wayland) → строка XDG_DATA_DIRS в ~/.bash_profile → перезапуск сессии. После этого VSCodium стартует и из терминала, и из лаунчера, сразу нативным окном.
+
+Кстати, flatpak override — это ваш универсальный ключ для всех будущих Flatpak-приложений: тот же приём (--socket=wayland --env=ELECTRON_OZONE_PLATFORM_HINT=wayland) заставит нативно работать Discord, Spotify и прочий Electron-зоопарк, который вы наверняка ещё поставите. Так что запомните этот рецепт.
