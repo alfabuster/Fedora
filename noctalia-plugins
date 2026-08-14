@@ -29,3 +29,16 @@ noctalia msg plugins list
 Итак, чтобы закрыть тему одной фразой: config.kdl и noctalia.kdl тут ни при чём, они в порядке. Плагины лежат в другом каталоге (~/.local/share/noctalia/), приезжают из git-источников и требуют явного включения — а раньше не подтягивались из-за нестабильной сети.
 
 Покажите вывод noctalia msg plugins list — по нему скажу, скачался ли каталог, и какие плагины стоит включить под ваш сетап. А там уже рукой подать до финального аккорда — панель на всю ширину + неоновая тема Neon Mocha, ради которой всё и затевалось.
+
+
+~/.config/noctalia 
+❯ noctalia msg plugins list                              # что вообще доступно из источников
+(no plugins)
+
+~/.config/noctalia 
+❯ noctalia msg plugins update official                   # подтянуть официальный каталог
+ok (updating in background)
+
+~/.config/noctalia 
+❯ noctalia msg plugins list
+(no plugins)
