@@ -22,3 +22,6 @@ sh
 flatpak override --user --filesystem=/run/media com.obsproject.Studio
 
 Про NVIDIA-кодирование: у вас RTX 3060, и OBS может писать через NVENC (аппаратный кодировщик, не грузит процессор). Но во Flatpak это требует, чтобы стоял Flatpak-runtime NVIDIA (он обычно ставится автоматически как зависимость — вы видели GL.nvidia-595 при установке VSCodium). Если NVENC в OBS не появится — скажите, доставим org.freedesktop.Platform.GL.nvidia нужной версии.
+
+
+flatpak override --user --talk-name=org.freedesktop.portal.Desktop com.obsproject.Studio
