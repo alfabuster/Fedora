@@ -29,3 +29,51 @@ flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platf
 Если так чётче — пропишем этот флаг в его .desktop через flatpak override, чтобы работало из лаунчера автоматически. Но сначала проверьте обычный запуск.
 
 Итог по шагам: flatpak run com.vscodium.codium (убедиться, что вообще стартует) → добавить XDG_DATA_DIRS в ~/.bash_profile → перезапуск сессии → появится в Win+D. Скажите, открылось ли окно обычным flatpak run — от этого зависит, лезть ли в Wayland-флаги.
+
+
+
+Проверка 1 — попробовать оба режима явно. Запустите по очереди и смотрите, какой откроет окно:
+
+sh
+flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platform=wayland
+
+Не открылось — тогда через XWayland:
+
+sh
+flatpak run com.vscodium.codium --ozone-platform=x11
+
+Проверка 2 — а xwayland-satellite вообще запущен? Вариант с x11 (и многие Electron-приложения по умолчанию) требует XWayland, а в niri его нет без xwayland-satellite. Проверьте:
+
+sh
+pgrep -a xwayland-satellite
+
+Пусто — ставим и запускаем:
+
+sh
+sudo xbps-install xwayland-satellite
+xwayland-satellite &
+
+И добавьте в ~/.config/niri/config.kdl для автозапуска на будущее:
+
+kdl
+spawn-at-startup "xwayland-satellite"
+
+После этого повторите запуск с --ozone-platform=x11.
+
+Проверка 3 — если оба флага молчат, смотрим саму ошибку. Flatpak-обёртка могла проглотить сообщение. Запустите с подробным выводом:
+
+sh
+flatpak run --verbose com.vscodium.codium 2>&1 | tail -30
+
+Там будет реальная причина — например, cannot open display, GBM, Ozone, или что-то про песочницу. Покажите последние строки — по ним скажу точно.
+
+Проверка 4 — портал. Flatpak-приложениям для нормальной работы под Wayland нужен xdg-desktop-portal. Убедитесь, что он есть:
+
+sh
+pgrep -a xdg-desktop-portal
+
+Пусто — доставьте sudo xbps-install xdg-desktop-portal xdg-desktop-portal-gtk и перезапустите сессию.
+
+Мой прогноз: у вас не запущен xwayland-satellite, а VSCodium по умолчанию лезет в X11 — отсюда тишина. Так что самый вероятный быстрый фикс — Проверка 2 (поставить и запустить xwayland-satellite), потом запуск с --ozone-platform=wayland.
+
+Начните с pgrep -a xwayland-satellite и flatpak run --verbose com.vscodium.codium 2>&1 | tail -30 — эти два вывода покажут корень. Скиньте их, и я не буду гадать, а назову точную причину.
