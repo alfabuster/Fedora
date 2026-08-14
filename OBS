@@ -1,65 +1,21 @@
-OBS через Flathub — и тут пляски будут, честно предупреждаю, но по хорошей причине. OBS — Electron/Qt-приложение с захватом экрана, а захват под Wayland требует порталов. Ставим:
+1. Стоит ли wlr-бэкенд и запущен ли он:
 
 sh
-flatpak install flathub com.obsproject.Studio
+ls /usr/share/xdg-desktop-portal/portals/          # есть ли wlr.portal
+pgrep -af xdg-desktop-portal                        # какие порталы реально запущены
 
-После установки — три обязательных штриха, иначе OBS либо не запустится нормально, либо не увидит экран:
-
-Wayland-режим (тот же трюк, что с VSCodium):
-sh
-flatpak override --user --socket=wayland --env=QT_QPA_PLATFORM=wayland com.obsproject.Studio
-
-(OBS на Qt, поэтому переменная QT_QPA_PLATFORM, а не Electron-овская.)
-
-Доступ к порталу захвата экрана. OBS под niri захватывает экран через xdg-desktop-portal (протокол PipeWire ScreenCast). Убедитесь, что портал есть и запущен:
-sh
-pgrep -a xdg-desktop-portal || sudo xbps-install xdg-desktop-portal xdg-desktop-portal-gtk
-
-Внутри OBS источник экрана добавляется как «Screen Capture (PipeWire)» — не как «Display Capture» (та под X11). Выберете PipeWire-вариант — выскочит окошко портала с выбором монитора.
-
-Доступ к дискам/флешкам для записи (если пишете на внешний диск):
-sh
-flatpak override --user --filesystem=/run/media com.obsproject.Studio
-
-Про NVIDIA-кодирование: у вас RTX 3060, и OBS может писать через NVENC (аппаратный кодировщик, не грузит процессор). Но во Flatpak это требует, чтобы стоял Flatpak-runtime NVIDIA (он обычно ставится автоматически как зависимость — вы видели GL.nvidia-595 при установке VSCodium). Если NVENC в OBS не появится — скажите, доставим org.freedesktop.Platform.GL.nvidia нужной версии.
-
-
-flatpak override --user --talk-name=org.freedesktop.portal.Desktop com.obsproject.Studio
-
-
-Соберём точный рецепт:
-
-1. Конфиг порталов — ~/.config/xdg-desktop-portal/portals.conf (именно portals.conf, не niri-portals.conf):
-
-ini
-[preferred]
-default=gtk
-org.freedesktop.impl.portal.ScreenCast=wlr
-org.freedesktop.impl.portal.Screenshot=wlr
-
-2. Подсунуть wlr-порталу «sway» как окружение. Это и есть недостающий кусок. Добавьте в блок environment { } вашего ~/.config/niri/config.kdl:
-
-kdl
-    XDG_CURRENT_DESKTOP "sway"
-
-Осторожно: эта переменная глобально повлияет и на другие приложения (некоторые по ней меняют поведение). Если что-то поедет — уберём и зайдём точечнее, но для старта проще так.
-
-3. Перезапустить порталы (по рецепту из #309):
+2. Видит ли PipeWire ваш экран как источник видео (без этого захвата не будет в принципе):
 
 sh
-systemctl --user restart xdg-desktop-portal xdg-desktop-portal-wlr
+pw-cli ls Node | grep -iE 'class|monitor|screen'
 
-Если у вас порталы не под systemd (на Void обычно так) — просто перезапустите сессию niri (Win+Shift+E, автологин вернёт).
-
-4. Проверка, что ScreenCast-интерфейс наконец появился (это лакмус):
+3. Что говорит сам wlr-портал при запуске — самое информативное. Найдите его бинарник и запустите вручную с логами:
 
 sh
-busctl --user introspect org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop | grep -i ScreenCast
-Есть строка ScreenCast → портал ожил, в OBS появится «Screen Capture (PipeWire)».
-Пусто → портал всё ещё не поднял захват.
+find /usr -name 'xdg-desktop-portal-wlr' 2>/dev/null
+# затем (путь из вывода выше):
+pkill xdg-desktop-portal
+XDG_CURRENT_DESKTOP=sway /usr/libexec/xdg-desktop-portal-wlr -l TRACE 2>&1 | head -40 &
+/usr/libexec/xdg-desktop-portal -rv 2>&1 | grep -iE 'wlr|screencast|backend' &
 
-
-
-
-
-
+В выводе ключевое: регистрируется ли wlr как бэкенд ScreenCast, или ругается на окружение/протокол.
