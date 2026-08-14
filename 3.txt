@@ -112,3 +112,43 @@ EOF
 
 cp ~/.local/share/applications/amneziavpn.desktop ~/.local/share/applications/AmneziaVPN.desktop
 echo 'NoDisplay=true' >> ~/.local/share/applications/AmneziaVPN.desktop
+
+
+
+
+Самая вероятная причина — два сетевых менеджера дерутся. Базовая установка Void поднимает dhcpcd + wpa_supplicant, а мы потом добавили NetworkManager (ради Amnezia). Теперь оба рулят wlo1: один назначает адрес, другой переконфигурирует, они толкаются — отсюда периодические обрывы и 169.254, когда никто не выигрывает. Проверяем:
+
+sh
+ls /var/service/
+ps aux | grep -E 'dhcpcd|NetworkManager|wpa_supplicant'
+nmcli device status
+
+Если в /var/service/ и в процессах есть и dhcpcd, и NetworkManager одновременно — вот он, конфликт. Оставляем один (NetworkManager, он нужен Amnezia), лишний убираем:
+
+sh
+sudo rm /var/service/dhcpcd
+sudo rm /var/service/wpa_supplicant   # если есть как отдельный сервис
+sudo sv restart NetworkManager
+
+После этого NetworkManager единолично поднимет wlo1, получит настоящий IP (192.168.x.x или 10.x, а не 169.254), и обрывы прекратятся.
+
+Вторая возможная причина (или добавка к первой) — засыпание WiFi-карты. Энергосбережение радиомодуля даёт ровно ваш симптом: «отваливается, когда простаивает, оживает при активности». Проверьте и выключите:
+
+sh
+iw dev wlo1 get power_save        # скорее всего покажет "on"
+sudo iw dev wlo1 set power_save off
+
+Чтобы навсегда — создайте /etc/NetworkManager/conf.d/wifi-powersave.conf:
+
+[connection]
+wifi.powersave = 2
+
+(2 = выключить энергосбережение). Перезапустите NetworkManager.
+
+Проверка, что починилось:
+
+sh
+nmcli device show wlo1 | grep IP4.ADDRESS   # должен быть НЕ 169.254, а реальный адрес
+ping -i 5 8.8.8.8                            # оставьте на пару минут — потерь быть не должно
+
+Когда wlo1 получит нормальный адрес и перестанет отваливаться — VPN сам перестанет падать, потому что под ним будет стабильный линк.
