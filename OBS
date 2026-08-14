@@ -19,3 +19,82 @@ XDG_CURRENT_DESKTOP=sway /usr/libexec/xdg-desktop-portal-wlr -l TRACE 2>&1 | hea
 /usr/libexec/xdg-desktop-portal -rv 2>&1 | grep -iE 'wlr|screencast|backend' &
 
 В выводе ключевое: регистрируется ли wlr как бэкенд ScreenCast, или ругается на окружение/протокол.
+
+
+
+
+
+
+  den ~   21:01  ❯ ls /usr/share/xdg-desktop-portal/portals/          # есть ли wlr.portal
+ gtk.portal   wlr.portal
+
+  den ~   21:03  ❯ pgrep -af xdg-desktop-portal                        # какие порталы реально запущены
+26542 /usr/libexec/xdg-desktop-portal
+
+  den ~   21:04  ❯ pw-cli ls Node | grep -iE 'class|monitor|screen'
+ 		media.class = "Midi/Bridge"
+ 		media.class = "Audio/Sink"
+ 		media.class = "Audio/Source"
+
+  den ~   21:04  ❯ find /usr -name 'xdg-desktop-portal-wlr' 2>/dev/null
+/usr/libexec/xdg-desktop-portal-wlr
+/usr/share/licenses/xdg-desktop-portal-wlr
+
+  den ~   21:04  ❯ pkill xdg-desktop-portal
+pkill: pattern that searches for process name longer than 15 characters will result in zero matches
+Try `pkill -f' option to match against the complete command line.
+
+  den ~   21:04  ❯ XDG_CURRENT_DESKTOP=sway /usr/libexec/xdg-desktop-portal-wlr -l TRACE 2>&1 | head -40 &
+                            /usr/libexec/xdg-desktop-portal -rv 2>&1 | grep -iE 'wlr|screencast|backend' &
+2026/08/14 21:05:07 [TRACE] - config: trying config file /home/den/.config/xdg-desktop-portal-wlr/sway
+2026/08/14 21:05:07 [TRACE] - config: trying config file /home/den/.config/xdg-desktop-portal-wlr/config
+2026/08/14 21:05:07 [TRACE] - config: trying config file /etc/xdg/xdg-desktop-portal-wlr/sway
+2026/08/14 21:05:07 [TRACE] - config: trying config file /etc/xdg/xdg-desktop-portal-wlr/config
+2026/08/14 21:05:07 [INFO] - config: no config file found, using the default config
+2026/08/14 21:05:07 [DEBUG] - config: outputname:  (null)
+2026/08/14 21:05:07 [DEBUG] - config: max_fps:  0.000000
+2026/08/14 21:05:07 [DEBUG] - config: exec_before:  (null)
+2026/08/14 21:05:07 [DEBUG] - config: exec_after:  (null)
+2026/08/14 21:05:07 [DEBUG] - config: chooser_cmd: (null)
+2026/08/14 21:05:07 [DEBUG] - config: chooser_type: default
+2026/08/14 21:05:07 [DEBUG] - config: force_mod_linear: 0
+2026/08/14 21:05:07 [DEBUG] - dbus: connected
+2026/08/14 21:05:07 [DEBUG] - wlroots: wl_display connected
+2026/08/14 21:05:07 [DEBUG] - pipewire: pw_loop created
+2026/08/14 21:05:07 [DEBUG] - pipewire: establishing connection to core
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wl_compositor  (Version: 6)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wl_subcompositor  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register xdg_wm_base  (Version: 7)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zxdg_decoration_manager_v1  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register org_kde_kwin_server_decoration_manager  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwlr_layer_shell_v1  (Version: 5)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register ext_session_lock_manager_v1  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wl_shm  (Version: 2)
+2026/08/14 21:05:07 [DEBUG] - wlroots: |-- registered to interface wl_shm (Version 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zxdg_output_manager_v1  (Version: 3)
+2026/08/14 21:05:07 [DEBUG] - wlroots: |-- registered to interface zxdg_output_manager_v1 (Version 3)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wp_fractional_scale_manager_v1  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_tablet_manager_v2  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_pointer_gestures_v1  (Version: 3)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_relative_pointer_manager_v1  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_pointer_constraints_v1  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register ext_idle_notifier_v1  (Version: 2)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_idle_inhibit_manager_v1  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wl_data_device_manager  (Version: 3)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwp_primary_selection_device_manager_v1  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register zwlr_data_control_manager_v1  (Version: 2)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register ext_data_control_manager_v1  (Version: 1)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wp_presentation  (Version: 2)
+2026/08/14 21:05:07 [DEBUG] - wlroots: interface to register wp_security_context_manager_v1  (Version: 1)
+XDP: loading /usr/share/xdg-desktop-portal/portals/wlr.portal
+XDP: portal implementation supports org.freedesktop.impl.portal.ScreenCast
+XDP: loading /usr/share/xdg-desktop-portal/portals/wlr.portal
+XDP: Skipping duplicate source wlr
+XDP: Preferred portals for interface 'org.freedesktop.impl.portal.ScreenCast': wlr
+XDP: Preferred portals for interface 'org.freedesktop.impl.portal.Screenshot': wlr
+(/usr/libexec/xdg-desktop-portal:28321): xdg-desktop-portal-WARNING **: 21:05:07.810: Not providing Settings portal: No working backend
+XDP: Found 'wlr' in configuration for org.freedesktop.impl.portal.Screenshot
+XDP: Using wlr.portal for org.freedesktop.impl.portal.Screenshot (interface specific config)
+XDP: Found 'wlr' in configuration for org.freedesktop.impl.portal.ScreenCast
+XDP: Using wlr.portal for org.freedesktop.impl.portal.ScreenCast (interface specific config)
+(/usr/libexec/xdg-desktop-portal:28321): xdg-desktop-portal-WARNING **: 21:05:07.895: Failed to create screen cast proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.wlr: Process org.freedesktop.impl.portal.desktop.wlr exited with status 1
