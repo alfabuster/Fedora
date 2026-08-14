@@ -107,3 +107,8 @@ Categories=Network;
 EOF
 
 Теперь в fuzzel (Win+D) наберите «Amnezia» — запустится уже с правильным xcb. То же и для запуска из панели/меню noctalia — оно берёт приложения из тех же .desktop-файлов.
+
+
+
+cp ~/.local/share/applications/amneziavpn.desktop ~/.local/share/applications/AmneziaVPN.desktop
+echo 'NoDisplay=true' >> ~/.local/share/applications/AmneziaVPN.desktop
