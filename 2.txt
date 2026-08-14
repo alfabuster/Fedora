@@ -55,3 +55,8 @@ sudo efibootmgr -b <NNNN> -B                   # удалить лишнее
 sudo efibootmgr -o <void>,<windows>            # порядок: сначала void, потом Windows
 
 Если вдруг на шаге 1 bootmgfw.efi не окажется (крайне маловероятно) — тогда уже флешка восстановления Windows и bootrec /rebuildbcd, как расписано в переводе, Часть 3. Но не думаю, что дойдёт.
+
+
+
+sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet /' /etc/default/grub
+sudo grub-mkconfig -o /boot/grub/grub.cfg
