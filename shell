@@ -1,0 +1,95 @@
+Отличный выбор стека — и сразу поправлю одно заблуждение в вашу же пользу: powerlevel10k существует только для zsh, а вы берёте fish. Но не переживайте — Starship в связке с fish и правильным пресетом даёт ровно тот же p10k-вид (powerline-сегменты, время, git-иконки, статус репозитория), только кроссшелльный и современный. Так что fish + Starship — это и есть «p10k в новом стиле». Зафиксирую стек и распишу.
+
+Updated memory
+
+1. Установка. Осторожно с именами — на Void fish называется fish-shell:
+
+sh
+sudo xbps-install kitty fish-shell starship zoxide fzf eza bat yazi
+# зависимости yazi для превью (картинки/pdf/видео/архивы):
+sudo xbps-install file ffmpegthumbnailer poppler jq p7zip fd ripgrep ImageMagick chafa
+
+(Если yazi в репо нет — xbps-query -Rs yazi; тогда через cargo install yazi-fm yazi-cli.)
+
+2. kitty — тот самый плавный курсор. Эффект из видео — это cursor_trail в kitty. Создайте ~/.config/kitty/kitty.conf:
+
+ini
+font_family      JetBrainsMono Nerd Font
+font_size        12
+
+# --- плавный «шлейф» курсора (тот самый эффект) ---
+cursor_trail            3
+cursor_trail_decay      0.1 0.4
+cursor_shape            beam
+
+# косметика
+window_padding_width    8
+background_opacity       0.92
+confirm_os_window_close  0
+
+# fish как шелл именно в kitty (см. пункт 5)
+shell /usr/bin/fish
+
+# цвета из noctalia (см. пункт 6) — раскомментируется автогенерацией:
+# include ~/.config/kitty/noctalia-theme.conf
+
+cursor_trail 3 и даёт плавное перемещение, decay регулирует «хвост». Крутите числа под вкус.
+
+3. fish — инициализация инструментов. В ~/.config/fish/config.fish:
+
+fish
+# современный CLI-тулчейн
+starship init fish | source
+zoxide init fish --cmd cd | source      # cd теперь «умный» (zoxide)
+fzf --fish | source                     # Ctrl+R история, Ctrl+T файлы
+
+# eza вместо ls, bat вместо cat
+alias ls  "eza --icons --group-directories-first"
+alias ll  "eza -l --icons --group-directories-first --git"
+alias la  "eza -la --icons --group-directories-first --git"
+alias tree "eza --tree --icons"
+alias cat "bat"
+
+(Если fzf --fish ругнётся — версия старая; тогда source /usr/share/fzf/key-bindings.fish.)
+
+4. Starship — p10k-вид одной командой. У Starship есть готовые пресеты. Под ваш «современный p10k» берите powerline с пастельными сегментами:
+
+sh
+starship preset pastel-powerline -o ~/.config/starship.toml
+
+Даёт powerline-стрелки, время, git-ветку и статус, иконки языков — визуально то же, что p10k. Не понравится — есть ещё gruvbox-rainbow и nerd-font-symbols (starship preset --list). Потом ~/.config/starship.toml крутится как хотите.
+
+5. Важный момент — НЕ меняйте логин-шелл на fish. У вас автозапуск niri висит в ~/.bash_profile, а fish его не читает — сделаете chsh -s fish и niri перестанет стартовать с автологина. Правильнее оставить bash логин-шеллом (ради автозапуска), а fish запускать внутри kitty — это и делает строка shell /usr/bin/fish в kitty.conf. Все ваши окна терминала будут fish, а цепочка автологин→niri цела.
+
+Если всё же хотите fish везде (и в TTY) — тогда chsh -s /usr/bin/fish, но перенесите автозапуск из ~/.bash_profile в ~/.config/fish/config.fish:
+
+fish
+if status is-login; and test -z "$WAYLAND_DISPLAY"; and test "$XDG_VTNR" = "1"
+    exec dbus-run-session niri
+end
+
+6. Цвета kitty из noctalia — автоматом. noctalia умеет генерировать тему для kitty из своей палитры (раздел App Theming в настройках, Win+запятая). Включите там генерацию для kitty — она положит файл с цветами, и вы подключите его в kitty.conf строкой include ~/.config/kitty/noctalia-theme.conf (точный путь noctalia покажет). Тогда меняете обои/акцент — kitty перекрашивается сам в тон Neon Mocha. Вот это и есть та самая интеграция.
+
+7. yazi + kitty = превью картинок прямо в терминале. yazi через протокол картинок kitty показывает превью изображений нативно, без костылей. Добавьте в ~/.config/fish/config.fish обёртку y (это официальный способ — при выходе из yazi вы окажетесь в той папке, где были):
+
+fish
+function y
+    set tmp (mktemp -t "yazi-cwd.XXXXXX")
+    yazi $argv --cwd-file="$tmp"
+    if set cwd (command cat -- "$tmp"); and [ -n "$cwd" ]; and [ "$cwd" != "$PWD" ]
+        builtin cd -- "$cwd"
+    end
+    rm -f -- "$tmp"
+end
+
+Теперь y открывает файловый менеджер, стрелки/hjkl — навигация, q — выход в текущую папку. Thunar можно сносить: sudo xbps-install -R Thunar (иконки xfce уйдут; монтирование останется на udisks2 — для авто-подхвата флешек доставьте udiskie и добавьте spawn-at-startup "udiskie" в niri).
+
+8. Переключите терминал в niri на kitty. В config.kdl:
+
+kdl
+    Mod+T      { spawn "kitty"; }
+    Mod+Return { spawn "kitty"; }
+
+Порядок запуска: поставьте пакеты (п.1) → kitty.conf с курсором (п.2) → fish config (п.3) → пресет Starship (п.4) → бинд на kitty (п.8) → откройте Win+T. Вы сразу увидите kitty с плавным курсором и powerline-промптом. Потом включите генерацию цвета из noctalia (п.6) — и всё съедется в единую тему.
+
+Сделайте до пункта 4 и откройте новый терминал — покажите скриншотом, как выглядит промпт и курсор. Дальше подгоним Starship под неон (магента-циан сегменты) и включим автотему kitty из noctalia, чтобы терминал зазвучал в унисон с панелью. Плеер (cmus) добьём следом — он быстрый, отдельного захода почти не потребует.
