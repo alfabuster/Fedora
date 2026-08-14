@@ -93,3 +93,37 @@ kdl
 Порядок запуска: поставьте пакеты (п.1) → kitty.conf с курсором (п.2) → fish config (п.3) → пресет Starship (п.4) → бинд на kitty (п.8) → откройте Win+T. Вы сразу увидите kitty с плавным курсором и powerline-промптом. Потом включите генерацию цвета из noctalia (п.6) — и всё съедется в единую тему.
 
 Сделайте до пункта 4 и откройте новый терминал — покажите скриншотом, как выглядит промпт и курсор. Дальше подгоним Starship под неон (магента-циан сегменты) и включим автотему kitty из noctalia, чтобы терминал зазвучал в унисон с панелью. Плеер (cmus) добьём следом — он быстрый, отдельного захода почти не потребует.
+
+
+
+
+
+
+
+❯ sudo xbps-install kitty fish-shell starship zoxide fzf eza bat yazi
+ERROR: Package `starship' already installed.
+
+Name                    Action    Version           New version            Download size
+kitty-terminfo          install   -                 0.48.2_1               - 
+kitty-shell-integration install   -                 0.48.2_1               - 
+kitty-kitten            install   -                 0.48.2_1               - 
+libxxHash               install   -                 0.8.2_1                - 
+kitty                   install   -                 0.48.2_1               - 
+fish-shell              install   -                 4.8.1_1                - 
+zoxide                  install   -                 0.10.0_1               - 
+fzf                     install   -                 0.74.2_1               - 
+llhttp                  install   -                 9.4.1_1                - 
+libgit2-1.9             install   -                 1.9.6_1                760KB 
+eza                     install   -                 0.23.5_1               783KB 
+bat                     install   -                 0.26.1_1               2681KB 
+yazi                    install   -                 26.1.22_2              8694KB 
+
+Size to download:               13MB
+Size required on disk:         114MB
+Space available on disk:        29GB
+
+Do you want to continue? [Y/n] y
+
+[*] Downloading packages
+ERROR: [trans] failed to download `libgit2-1.9-1.9.6_1' signature from `https://repo-default.voidlinux.org/current': Not Found
+ERROR: Transaction failed! see above for errors.
