@@ -31,3 +31,23 @@ sh
 flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platform=wayland
 
 — это ваш эталон (открывается). А .desktop запускает ровно это же.
+
+
+
+❯ echo $XDG_DATA_DIRS | tr ':' '\n' | grep -E 'flatpak|.local/share'
+/home/den/.local/share/flatpak/exports/share
+/var/lib/flatpak/exports/share
+/usr/local/share
+
+~ 
+❯ flatpak run com.vscodium.codium --enable-features=UseOzonePlatform --ozone-platform=wayland
+com.vscodium.codium-wrapper: Setting up NPM packages
+com.vscodium.codium-wrapper: Setting up Cargo packages
+com.vscodium.codium-wrapper: Setting up Python packages
+com.vscodium.codium-wrapper: 'ruby' is not available
+[2 zypak-helper] Wait found events, but sd-event found none
+Option 'ozone-platform' is defined more than once. Using value 'wayland'.
+Warning: 'enable-features' is not in the list of known options, but still passed to Electron/Chromium.
+
+~ 
+❯ 
