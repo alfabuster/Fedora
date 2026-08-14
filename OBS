@@ -25,3 +25,32 @@ flatpak override --user --filesystem=/run/media com.obsproject.Studio
 
 
 flatpak override --user --talk-name=org.freedesktop.portal.Desktop com.obsproject.Studio
+
+
+
+
+1. Проверьте, что override реально записался:
+
+sh
+flatpak override --user --show com.obsproject.Studio
+
+Должно быть sockets=wayland и QT_QPA_PLATFORM=wayland. Если пусто или без wayland — значит слетело.
+
+2. Задайте Wayland-режим заново, одной строкой (и добавьте доступ к сокету, и переменную):
+
+sh
+flatpak override --user --socket=wayland --env=QT_QPA_PLATFORM=wayland com.obsproject.Studio
+
+3. Полностью закройте OBS и запустите заново — БЕЗ sudo:
+
+sh
+flatpak run com.obsproject.Studio
+
+При старте в терминале НЕ должно быть строки qt.qpa.xcb: could not connect to display. Если OBS пошёл на Wayland — в + → Sources появится «Screen Capture (PipeWire)».
+
+Если override упрямо не срабатывает (OBS всё равно лезет в xcb) — задайте переменную прямо при запуске, в обход:
+
+sh
+flatpak run --env=QT_QPA_PLATFORM=wayland com.obsproject.Studio
+
+Вот это точно заставит OBS стартовать в Wayland. Если так пункт «Screen Capture» появится — значит дело было в том, что override не применялся, и тогда зашьём флаг в .desktop (как с VSCodium).
