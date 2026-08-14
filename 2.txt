@@ -1,0 +1,57 @@
+Шаг 1 — понять, как запущен Amnezia:
+
+sh
+ps aux | grep -i amnezia
+ls /var/service/
+
+Если в /var/service/ есть сервис Amnezia — он и флудит консоль. Отвяжите его, чтобы не стартовал на TTY:
+
+sh
+sudo rm /var/service/<имя-сервиса-amnezia>
+
+После этого запускайте Amnezia только внутри сессии niri (его окно и логи останутся в графике, а не на голой консоли). Идеально — добавить в ~/.config/niri/config.kdl строку автозапуска, но уже осознанно.
+
+Шаг 2 — правильная загрузка (чтобы вообще не видеть консоль). Корень проблемы в том, что вы грузитесь в TTY, а не в графику. Поднимите greetd — и после входа сразу окажетесь в niri, минуя флудящую консоль:
+
+sh
+sudo xbps-install greetd tuigreet
+sudo useradd -M -G video greeter
+sudo ln -s /etc/sv/greetd /var/service/
+
+Конфиг /etc/greetd/config.toml — как в документе (команда сессии niri, не niri-session).
+
+Теперь — Windows. И хорошая новость: вы его почти наверняка НЕ потеряли.
+
+Когда void-installer клал GRUB в общий ESP, он добавил папку \EFI\void\, но \EFI\Microsoft\ при этом не удаляется — установка загрузчика не стирает соседние папки. Значит сам файл-загрузчик Windows на месте, а слетела лишь UEFI-запись в NVRAM (или GRUB просто не показывает Windows, потому что os-prober не включён). Проверяем и чиним — всё из того же терминала niri:
+
+Шаг 1 — убедиться, что загрузчик Windows на месте:
+
+sh
+sudo mount /dev/nvme0n1p1 /mnt
+ls /mnt/EFI                                    # ждём: Microsoft  void  (возможно KALI)
+ls /mnt/EFI/Microsoft/Boot/bootmgfw.efi        # файл должен существовать
+sudo umount /mnt
+
+Если bootmgfw.efi на месте (а он почти наверняка на месте) — восстановление тривиально.
+
+Шаг 2 — пересоздать запись Windows в NVRAM:
+
+sh
+sudo efibootmgr --create --disk /dev/nvme0n1 --part 1 \
+  --loader '\EFI\Microsoft\Boot\bootmgfw.efi' --label "Windows Boot Manager"
+
+Шаг 3 — чтобы Windows появился и в меню GRUB:
+
+sh
+sudo xbps-install -S os-prober ntfs-3g
+echo 'GRUB_DISABLE_OS_PROBER=false' | sudo tee -a /etc/default/grub
+sudo grub-mkconfig -o /boot/grub/grub.cfg      # должно написать "Found Windows Boot Manager"
+
+Шаг 4 — заодно вычистить осиротевшие записи и выставить порядок:
+
+sh
+efibootmgr -v                                  # найдите номера kali/Fedora, если остались
+sudo efibootmgr -b <NNNN> -B                   # удалить лишнее
+sudo efibootmgr -o <void>,<windows>            # порядок: сначала void, потом Windows
+
+Если вдруг на шаге 1 bootmgfw.efi не окажется (крайне маловероятно) — тогда уже флешка восстановления Windows и bootrec /rebuildbcd, как расписано в переводе, Часть 3. Но не думаю, что дойдёт.
