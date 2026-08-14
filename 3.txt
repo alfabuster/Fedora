@@ -43,3 +43,49 @@ EOF
 eval "$(starship init bash)"
 
 Откройте новый терминал (Win+T) — старые окна конфиг не перечитывают. Шрифт станет другим. А starship, чтобы заработал, нужно ещё инициализировать: добавьте в ~/.bashrc строку eval "$(starship init bash)", затем новый терминал — увидите красивый промпт.
+
+
+
+
+Amnezia — GUI не открывается, хотя служба жива. Ваш ps показал: сервис amnezia-vpn и демон AmneziaVPN-service работают. То есть背 end живёт, а не запускается именно окно (GUI). Причина почти наверняка в том, что GUI — это отдельное приложение, и оно либо не находит Wayland-дисплей, либо падает молча. Запустите его из терминала внутри niri, чтобы увидеть ошибку:
+
+sh
+ls /opt/AmneziaVPN/
+/opt/AmneziaVPN/AmneziaVPN     # или /opt/AmneziaVPN/client — гляньте, что там за бинарник
+
+Смотрите вывод. Скорее всего вылезет что-то про Qt/платформу — тогда запуск с явным указанием Wayland:
+
+sh
+QT_QPA_PLATFORM=wayland /opt/AmneziaVPN/AmneziaVPN
+
+Если и так молчит — попробуйте QT_QPA_PLATFORM=xcb (через XWayland). Один из двух заведёт окно. Какой сработает — тот и пропишем в автозапуск. Покажите вывод ls /opt/AmneziaVPN/ — назову точный бинарник.
+
+Клавиши громкости не работают — а мышкой из меню noctalia громкость меняется. Это ожидаемо: сами по себе клавиши XF86AudioRaiseVolume и т.п. niri не обрабатывает, пока вы не повесите на них действие. Их надо привязать — и лучше сразу к IPC noctalia, чтобы всплывал её OSD с громкостью. Добавьте в binds { } вашего config.kdl:
+
+kdl
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn "noctalia" "msg" "volume-up"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn "noctalia" "msg" "volume-down"; }
+    XF86AudioMute         allow-when-locked=true { spawn "noctalia" "msg" "volume-mute"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "noctalia" "msg" "brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia" "msg" "brightness-down"; }
+
+Сохраните (niri перечитает на лету) — и физические клавиши оживут, с красивым OSD от noctalia. Кстати, noctalia msg brightness-* заодно даст управление яркостью экрана теми же Fn-клавишами.
+
+Иконок в терминале нет, хотя шрифт сменился. Значит Hack Nerd Font не установился под этим именем — иконки берутся именно из Nerd-варианта. Проверьте, что реально стоит:
+
+sh
+fc-list | grep -i nerd
+
+Если пусто или нет «Hack» — имя пакета/шрифта другое. На Void Nerd Fonts часто ставятся как nerd-fonts-ttf, а внутри имя может быть, например, Hack Nerd Font Mono или JetBrainsMono Nerd Font. Возьмите точное имя из вывода fc-list и впишите его в foot.ini. Например, если fc-list покажет JetBrainsMono Nerd Font — тогда font=JetBrainsMono Nerd Font:size=12. Имя должно совпадать до буквы.
+
+Ошибка starship init bash — «syntax error, key:value pair has no value». Вот это ключевая подсказка: такая ошибка — не от bash. Bash так не ругается. Это ругается foot, читая свой foot.ini. Похоже, вы случайно вставили строку eval "$(starship init bash)" не в ~/.bashrc, а в ~/.config/foot/foot.ini — а foot ждёт там строки формата ключ=значение, и подавился. Проверьте:
+
+sh
+cat ~/.config/foot/foot.ini
+
+Если увидите там строку про starship — уберите её оттуда, она должна быть в ~/.bashrc:
+
+sh
+echo 'eval "$(starship init bash)"' >> ~/.bashrc
+
+Затем откройте новый терминал. И проверьте, что starship реально установлен: which starship.
