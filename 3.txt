@@ -152,3 +152,32 @@ nmcli device show wlo1 | grep IP4.ADDRESS   # должен быть НЕ 169.254
 ping -i 5 8.8.8.8                            # оставьте на пару минут — потерь быть не должно
 
 Когда wlo1 получит нормальный адрес и перестанет отваливаться — VPN сам перестанет падать, потому что под ним будет стабильный линк.
+
+
+
+
+
+Оставляем только NetworkManager (он нужен Amnezia и уже держит Mishki), лишних убираем:
+
+sh
+sudo rm /var/service/dhcpcd
+sudo rm /var/service/wpa_supplicant
+sudo sv restart NetworkManager
+
+dhcpcd и отдельный wpa_supplicant уходят — NetworkManager дальше рулит WiFi единолично, своим встроенным supplicant'ом. Никто ни с кем не дерётся.
+
+Энергосбережение — закрепить навсегда (ваш iw ... power_save off слетит после перезагрузки). Создайте:
+
+sh
+sudo tee /etc/NetworkManager/conf.d/wifi-powersave.conf <<'EOF'
+[connection]
+wifi.powersave = 2
+EOF
+sudo sv restart NetworkManager
+
+Проверка после:
+
+sh
+nmcli device status                          # wlo1 — connected, Mishki
+nmcli device show wlo1 | grep IP4.ADDRESS    # реальный адрес, НЕ 169.254
+ping -i 5 8.8.8.8                             # оставьте на 5-10 минут — потерь быть не должно
