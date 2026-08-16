@@ -1,0 +1,163 @@
+Void Linux + Niri: Post-Install Setup Guide
+
+В этом руководстве собраны решения специфических проблем и настройки для сборки на базе Void Linux (runit), композитора Niri (Wayland) и ноутбука Asus Dash F15.
+1. Исправление автоподключения Bluetooth (PipeWire / WirePlumber)
+
+Проблема: В системах без systemd WirePlumber может стартовать раньше демона bluetoothd, из-за чего наушники не подключаются или звук не перенаправляется.
+
+Решение:
+
+    Настроить доверие к наушникам, чтобы они подключались автоматически при включении:
+    Bash
+
+    bluetoothctl trust <MAC-адрес_наушников>
+
+    Создать скрипт инициализации звука ~/.local/bin/start-audio.sh:
+    Bash
+
+    #!/bin/sh
+    # Убиваем старые процессы
+    killall -q pipewire pipewire-pulse wireplumber
+
+    # Даем bluetoothd время на инициализацию
+    sleep 1
+
+    # Запускаем демоны
+    pipewire &
+    pipewire-pulse &
+    wireplumber &
+
+    Сделать скрипт исполняемым: chmod +x ~/.local/bin/start-audio.sh.
+
+    Добавить в автозапуск ~/.config/niri/config.kdl:
+    Фрагмент кода
+
+    spawn-at-startup "sh" "-c" "~/.local/bin/start-audio.sh"
+
+2. Управление мультимедиа и громкостью
+
+Установить утилиту для перехвата кнопок плеера:
+Bash
+
+sudo xbps-install -S playerctl
+
+Прописать бинды в ~/.config/niri/config.kdl:
+Фрагмент кода
+
+binds {
+    XF86AudioPlay { spawn "playerctl" "play-pause"; }
+    XF86AudioNext { spawn "playerctl" "next"; }
+    XF86AudioPrev { spawn "playerctl" "previous"; }
+    XF86AudioRaiseVolume { spawn "wpctl" "set-volume" "-l" "1.5" "@DEFAULT_AUDIO_SINK@" "5%+"; }
+    XF86AudioLowerVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-"; }
+    XF86AudioMute        { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+}
+
+3. Настройка скриншотов (grim + slurp + swappy)
+
+Проблема: swappy по умолчанию сохраняет скриншоты в рабочую директорию.
+Решение:
+
+    Создать конфиг ~/.config/swappy/config:
+    Ini, TOML
+
+    [Default]
+    save_dir=$HOME/Screenshots
+    save_filename_format=screenshot-%Y%m%d_%H%M%S.png
+    show_panel=false
+    line_size=5
+    text_size=20
+    text_font=sans-serif
+
+    Бинды для Niri:
+    Фрагмент кода
+
+    binds {
+        Print { spawn "bash" "-c" "grim -g \"$(slurp)\" - | swappy -f -"; }
+        Mod+P { spawn "bash" "-c" "grim - | swappy -f -"; }
+    }
+
+4. Кастомизация интерфейса плеера cmus
+
+Для минималистичного вида введите следующие команды внутри запущенного cmus:
+
+    Сменить тему: :set colorscheme=dracula (или zenburn)
+
+    Скрыть скрытые файлы: :set show_hidden=false
+
+    Настроить левую колонку (только артисты): :set format_tree=%a
+
+    Настроить плейлист (трек и время): :set format_trackwin=%t %= %d
+
+    Нижняя статус-строка: :set format_statusline=%status %play_status %title %= %r
+
+5. Настройка курсора в Niri
+
+    Установить архиватор: sudo xbps-install -S xz
+
+    Распаковать курсор (например, Bibata) в ~/.icons/.
+
+    Указать параметры в ~/.config/niri/config.kdl:
+    Фрагмент кода
+
+    environment {
+        XCURSOR_THEME "Bibata-Modern-Amber"
+        XCURSOR_SIZE "24"
+    }
+
+6. Запись в OBS Studio (Системный звук + 144 FPS + NVENC)
+
+Изоляция звука (без микрофона и эха):
+
+    Настройки -> Аудио -> Глобальные устройства. Выставить Выключено (Disabled) для Desktop Audio и Mic.
+
+    В нужной сцене добавить источник Захват выходного аудиопотока (PulseAudio) и выбрать там свои наушники/динамики.
+
+Запись в 144 FPS без лагов процессора:
+
+    Настройки -> Видео -> Поле FPS. Выбрать Fractional FPS Values (Дробные значения).
+
+    Числитель: 144, Знаменатель: 1.
+
+    Настройки -> Вывод (Output). Video Encoder: Hardware (NVENC, H.264), Формат: Hybrid MP4.
+
+7. Установка asusctl (Охлаждение Asus Dash F15) в Void Linux
+
+Так как пакета нет в репозиториях, собираем из исходников и настраиваем демон для Runit.
+
+1. Установка зависимостей:
+Bash
+
+sudo xbps-install -S base-devel rust cargo eudev-libudev-devel cmake pkg-config fontconfig-devel clang clang-devel libclang
+
+2. Сборка:
+Bash
+
+git clone https://gitlab.com/asus-linux/asusctl.git
+cd asusctl
+make
+sudo make install
+
+3. Настройка сервиса asusd (Runit):
+Bash
+
+sudo mkdir -p /etc/sv/asusd
+echo '#!/bin/sh' | sudo tee /etc/sv/asusd/run
+echo 'exec 2>&1' | sudo tee -a /etc/sv/asusd/run
+echo 'exec asusd' | sudo tee -a /etc/sv/asusd/run
+sudo chmod +x /etc/sv/asusd/run
+
+sudo ln -s /etc/sv/asusd /var/service/
+sudo sv start asusd
+
+4. Интеграция с Niri (Уведомления и автостарт):
+В ~/.config/niri/config.kdl добавить запуск user-демона и бинд на переключение профилей (Fn+F5):
+Фрагмент кода
+
+spawn-at-startup "asusd-user"
+
+binds {
+    XF86Launch4 { spawn "sh" "-c" "notify-send 'Термопрофиль' \"$(asusctl profile next)\""; }
+}
+
+GUI-утилита доступна по команде rog-control-center.
