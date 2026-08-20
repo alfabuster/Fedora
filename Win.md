@@ -16,4 +16,4 @@ Select-Object TimeCreated, Id, ProviderName, LevelDisplayName, Message |
 Format-List
 ```
 
-C:\Program Files\Oracle\VirtualBox Guest Additions\VBoxTray.exe
+"C:\Program Files\Oracle\VirtualBox Guest Additions\VBoxTray.exe"
