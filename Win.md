@@ -1,9 +1,17 @@
-Сейчас мне нужны результаты вот этих пяти команд:
+Сейчас пришли мне результат вот этих команд:
 ```
-Get-Service RpcSs,RpcEptMapper,LanmanWorkstation | Format-Table Name,Status,StartType
-Get-Service Netlogon | Format-Table Name,Status,StartType
-net view \\localhost
-net view \\127.0.0.1
-Test-NetConnection localhost -Port 135
+net view \\vboxsvr
+net view \\vboxsrv
+net view \\VBoxSF
 ```
-После этого уже будет понятно, это Windows RPC/Network Provider или конкретно VBoxMRXNP.
+и:
+```
+net use
+```
+и, если не лень, последний большой вывод:
+```
+Get-WinEvent -LogName System -MaxEvents 500 |
+Where-Object { $_.Message -match 'VBox|vboxsf|VBoxMRXNP' } |
+Select-Object TimeCreated, Id, ProviderName, LevelDisplayName, Message |
+Format-List
+```
