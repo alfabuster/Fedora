@@ -1,11 +1,7 @@
-Поэтому сейчас пришли мне результаты всего двух вещей:
+Сейчас дай мне вывод трёх команд:
 
-№1:
+net use Z: \\vboxsvr\lab_share
+net view \\vboxsvr
+Get-Service LanmanWorkstation
 
-"C:\Program Files\Oracle\VirtualBox Guest Additions\VBoxControl.exe" sharedfolder list
-
-№2:
-
-Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\VBoxSF\NetworkProvider"
-
-И пока не меняй реестр.
+И по коду ошибки уже пойдём в конкретную сторону.
