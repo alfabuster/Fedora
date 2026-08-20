@@ -15,3 +15,5 @@ Where-Object { $_.Message -match 'VBox|vboxsf|VBoxMRXNP' } |
 Select-Object TimeCreated, Id, ProviderName, LevelDisplayName, Message |
 Format-List
 ```
+
+C:\Program Files\Oracle\VirtualBox Guest Additions\VBoxTray.exe
