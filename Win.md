@@ -18,3 +18,21 @@ C:\Windows\System32\drivers\etc\lmhosts
 Потом перезагрузи Windows Server.
 
 Это не костыль, который мы придумали — это прямо указанный Oracle workaround для проблем с доступом Windows-гостя к VirtualBox Shared Folders.
+
+
+После перезагрузки
+
+Сначала:
+```
+net view \\vboxsvr
+```
+Если увидит шару — отлично.
+
+Тогда:
+```
+net use Z: \\vboxsvr\lab_share
+```
+И:
+```
+dir Z:\
+```
