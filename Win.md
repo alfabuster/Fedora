@@ -17,3 +17,6 @@ Format-List
 ```
 
 "C:\Program Files\Oracle\VirtualBox Guest Additions\VBoxTray.exe"
+```
+Test-Path "C:\Program Files\Oracle\VirtualBox Guest Additions\VBoxTray.exe"
+```
